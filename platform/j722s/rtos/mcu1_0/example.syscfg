@@ -110,4 +110,4 @@ debug_log.uartLog.WKUP_UART.TXD.$suggestSolution = "WKUP_UART0_TXD";
 
 addr_translate1.$name      = "CONFIG_ADDR_TRANSLATE_REGION0";
 addr_translate1.localAddr  = 0xC0000000;
-addr_translate1.systemAddr = 0x900000000;
+addr_translate1.systemAddr = 0x8A0000000;

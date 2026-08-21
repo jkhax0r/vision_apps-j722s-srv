@@ -168,7 +168,7 @@ mmu_armv89.attribute         = "MAIR7";
  */
 mmu_armv810.$name             = "DDR_SHARED_MEM";
 mmu_armv810.vAddr             = 0xC0000000;
-mmu_armv810.pAddr             = 0x900000000;
+mmu_armv810.pAddr             = 0x8A0000000;
 mmu_armv810.size              = 0x20000000;
 mmu_armv810.attribute         = "MAIR7";
 

@@ -245,7 +245,7 @@ c7x_2_ddr_scratch_size     = 112*MB;
 c7x_core_heap_hi_size     += c7x_2_ddr_scratch_size
 
 # Shared memory for DMA Buf FD carveout (located in high mem)
-ddr_shared_mem_addr_phys  = 0x900000000; # TODO: Clean this up
+ddr_shared_mem_addr_phys  = 0x8A0000000; # TODO: Clean this up
 ddr_shared_mem_size       = 512*MB;
 
 #

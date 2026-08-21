@@ -75,13 +75,13 @@ MEMORY
     /* R5F_TCMB0 [ size 31.94 KB ] */
     R5F_TCMB0                ( RWIX ) : ORIGIN = 0x41010040 , LENGTH = 0x00007FC0
     /* DDR for MCU1_0 for Linux IPC [ size 1024.00 KB ] */
-    DDR_MCU1_0_IPC           ( RWIX ) : ORIGIN = 0xA0000000 , LENGTH = 0x00100000
+    DDR_MCU1_0_IPC           ( RWIX ) : ORIGIN = 0xA1000000 , LENGTH = 0x00100000
     /* DDR for MCU1_0 for Linux resource table [ size 1024 B ] */
-    DDR_MCU1_0_RESOURCE_TABLE ( RWIX ) : ORIGIN = 0xA0100000 , LENGTH = 0x00000400
+    DDR_MCU1_0_RESOURCE_TABLE ( RWIX ) : ORIGIN = 0xA1100000 , LENGTH = 0x00000400
     /* DDR for MCU1_0 for Linux IPC trace [ size 1023.00 KB ] */
-    DDR_MCU1_0_IPC_TRACE     ( RWIX ) : ORIGIN = 0xA0100400 , LENGTH = 0x000FFC00
+    DDR_MCU1_0_IPC_TRACE     ( RWIX ) : ORIGIN = 0xA1100400 , LENGTH = 0x000FFC00
     /* DDR for MCU1_0 for code/data [ size 14.00 MB ] */
-    DDR_MCU1_0               ( RWIX ) : ORIGIN = 0xA0200000 , LENGTH = 0x00E00000
+    DDR_MCU1_0               ( RWIX ) : ORIGIN = 0xA1200000 , LENGTH = 0x00E00000
     /* Memory for IPC Vring's. MUST be non-cached or cache-coherent [ size 32.00 MB ] */
     IPC_VRING_MEM                     : ORIGIN = 0xA5000000 , LENGTH = 0x02000000
     /* Memory for remote core logging [ size 256.00 KB ] */

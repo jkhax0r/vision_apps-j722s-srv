@@ -170,4 +170,4 @@ i2c2.I2C.SDA.$suggestSolution               = "GPMC0_CSn3";
 
 addr_translate1.$name      = "CONFIG_ADDR_TRANSLATE_REGION0";
 addr_translate1.localAddr  = 0xC0000000;
-addr_translate1.systemAddr = 0x900000000;
+addr_translate1.systemAddr = 0x8A0000000;

@@ -113,7 +113,8 @@ GB = KB*MB;
 # virtual lower DDR address range 0x0001_0000_0000
 #
 
-ddr_mem_addr  = 0xa0000000;
+# Leave 0xA0000000..0xA0FFFFFF for the MCU-domain R5 placeholder/IPC firmware.
+ddr_mem_addr  = 0xa1000000;
 ddr_mem_size  = 1*GB + 448*MB; # Last 64MB is used by Linux
 
 ddr_mem_addr_hi_phys = 0x880000000;
@@ -160,7 +161,8 @@ mcu1_0_ddr_ipc_tracebuf_addr = mcu1_0_ddr_resource_table_addr + linux_ddr_resour
 mcu1_0_ddr_addr = mcu1_0_ddr_ipc_tracebuf_addr + linux_ddr_ipc_trace_size;
 mcu1_0_ddr_size = 16*MB - (mcu1_0_ddr_addr-mcu1_0_ddr_ipc_addr);
 
-mcu2_0_ddr_ipc_addr = mcu1_0_ddr_addr + mcu1_0_ddr_size + 16*MB;
+# Keep main R5F IPC carveout aligned with Linux remoteproc reserved-memory.
+mcu2_0_ddr_ipc_addr = 0xa2000000;
 mcu2_0_ddr_resource_table_addr = mcu2_0_ddr_ipc_addr + linux_ddr_ipc_size;
 mcu2_0_ddr_ipc_tracebuf_addr = mcu2_0_ddr_resource_table_addr + linux_ddr_resource_table_size;
 mcu2_0_ddr_addr = mcu2_0_ddr_ipc_tracebuf_addr + linux_ddr_ipc_trace_size;
@@ -272,7 +274,7 @@ c7x_2_1_ddr_local_heap_addr = c7x_1_ddr_local_heap_addr;
 c7x_2_1_ddr_scratch_addr = c7x_1_ddr_scratch_addr;
 
 # Shared memory for DMA Buf FD carveout (located in high mem)
-ddr_shared_mem_addr_phys  = 0x900000000;
+ddr_shared_mem_addr_phys  = 0x8A0000000;
 
 #
 # Create memory section based on addr and size defined above, including
