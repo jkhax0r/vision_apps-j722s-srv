@@ -3,7 +3,8 @@
  *
  * This is an intentionally simple bring-up app. It captures four UYVY V4L2
  * devices, copies a centered 640x480 crop into OpenVX images, runs
- * tivxGlSrvNode(), and writes the final RGBX output frame to disk.
+ * tivxGlSrvNode(), presents the result, and optionally writes the final RGBX
+ * output frame to disk.
  */
 
 #include <errno.h>

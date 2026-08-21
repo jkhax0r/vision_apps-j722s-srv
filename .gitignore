@@ -7,3 +7,7 @@ test_out/
 *.pyc
 __pycache__
 platform/*/rtos/*/generated
+*.log
+*.out
+*.raw
+jk_deploy/artifacts/
