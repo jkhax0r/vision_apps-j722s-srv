@@ -650,6 +650,14 @@ int car_init()
 
 void car_draw(int viewport_id)
 {
+    if ((num_car_models <= 0) ||
+        (active_car_index < 0) ||
+        (active_car_index >= num_car_models) ||
+        (car_data[active_car_index].scene == NULL))
+    {
+        return;
+    }
+
     RenderScene(&car_data[active_car_index], viewport_id);
 }
 

@@ -61,6 +61,7 @@
  */
 
 #include <unistd.h>
+#include <stdlib.h>
 #include "TI/tivx.h"
 #include "TI/tivx_srv.h"
 #include "VX/vx.h"
@@ -361,6 +362,33 @@ static vx_status VX_CALLBACK tivxGlSrvProcess(
             appEglCheckGlError("render_renderFrame");
             glFinish();
             appEglCheckGlError("glFinish");
+            if (getenv("APP_EGL_WAYLAND") != NULL)
+            {
+                GLint render_fbo = 0;
+                GLsizei width = output_desc->imagepatch_addr[0].dim_x;
+                GLsizei height = output_desc->imagepatch_addr[0].dim_y;
+                PFNGLBLITFRAMEBUFFERNVPROC blit_framebuffer =
+                    (PFNGLBLITFRAMEBUFFERNVPROC)eglGetProcAddress(
+                        "glBlitFramebuffer");
+
+                if (blit_framebuffer == NULL)
+                {
+                    blit_framebuffer =
+                        (PFNGLBLITFRAMEBUFFERNVPROC)eglGetProcAddress(
+                            "glBlitFramebufferNV");
+                }
+
+                if (blit_framebuffer != NULL)
+                {
+                    glGetIntegerv(GL_FRAMEBUFFER_BINDING, &render_fbo);
+                    glBindFramebuffer(GL_READ_FRAMEBUFFER_NV, (GLuint)render_fbo);
+                    glBindFramebuffer(GL_DRAW_FRAMEBUFFER_NV, 0);
+                    blit_framebuffer(0, 0, width, height,
+                                     0, 0, width, height,
+                                     GL_COLOR_BUFFER_BIT, GL_NEAREST);
+                    appEglCheckGlError("glBlitFramebufferNV");
+                }
+            }
             glBindFramebuffer(GL_FRAMEBUFFER, 0);
             appEglCheckGlError("glBindFramebuffer");
             appEglSwap(glSrvParams->eglWindowObj);
@@ -624,5 +652,3 @@ void tivxRemoveTargetKernelGlSrv(void)
         vx_gl_srv_target_kernel = NULL;
     }
 }
-
-

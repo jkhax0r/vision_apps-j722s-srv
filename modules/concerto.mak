@@ -31,7 +31,7 @@ endif
 SHARED_LIBS += GLESv2 EGL
 
 ifeq ($(TARGET_OS),LINUX)
-SHARED_LIBS += rt gbm
+SHARED_LIBS += rt gbm wayland-client wayland-egl
 endif
 endif
 

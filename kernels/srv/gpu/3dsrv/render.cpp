@@ -135,7 +135,7 @@ extern int num_srv_views;
 extern srv_bowl_reshape_t srv_bowl_reshape;
 bool srv_bowl_reshape_dir;
 int srv_param_select = 0;
-bool srv_param_car = true;
+bool srv_param_car = false;
 bool srv_param_bowl = true;
 int srv_param_view1 = 0;
 int srv_param_view2 = 1;
@@ -905,19 +905,26 @@ GLuint render_createProgram(const char* pVertexSource, const char* pFragmentSour
 }
 int render_setup(render_state_t *pObj)
 {
-    srv_setup(pObj);
+    if (srv_setup(pObj) != 0)
+    {
+        fprintf(stderr, "SRV renderer setup failed\n");
+        return -1;
+    }
 
     //Initialize views
     srv_views_init(pObj);
 
     //STEP2 - initialise the vertices
-    car_init();
+    if (car_init() == 0)
+    {
+        srv_param_car = false;
+    }
     GL_CHECK(car_init_vertices_vbo);
 
-    //STEP3 - initialise the individual views
-    //screen1_init_vbo();
-    GL_CHECK(screen1_init_vbo);
-
+    srv_viewports[0].x = 0;
+    srv_viewports[0].y = 0;
+    srv_viewports[0].width = pObj->screen_width;
+    srv_viewports[0].height = pObj->screen_height;
     num_viewports = sizeof(srv_viewports)/sizeof(srv_viewport_t);
 
     for (int i = 0; i < num_viewports; i++)
@@ -933,8 +940,7 @@ int render_setup(render_state_t *pObj)
     MODE_CAM(srv_coords_vp[0]);
 
     //cull
-    glEnable(GL_CULL_FACE);
-    glCullFace(GL_BACK);
+    glDisable(GL_CULL_FACE);
 
 #if defined(STANDALONE) || defined(SRV_USE_JOYSTICK)
 #ifdef _WIN32
@@ -1079,6 +1085,8 @@ void render_renderFrame(render_state_t *pObj, void *pEglObj, GLuint *texYuv)
 			if(srv_param_car)
 				car_draw(i);
 		}
+
+		/* The single-view quad is initialized for diagnostics and future previews. */
 		//boxes_draw((ObjectBox *)pObj->BoxLUT, (Pose3D_f *)pObj->BoxPose3D, texYuv);
 	}
 

@@ -151,7 +151,7 @@ static const char srv_vert_shader_lut[] =
 " uniform float uTextureY;\n "
 #endif
 " void main(void) {\n "
-"     gl_Position = uMVMatrix * vec4(aVertexPosition.x, aVertexPosition.y, aVertexPosition.z, 1.0);\n "
+"     gl_Position = vec4(aVertexPosition.x/540.0, aVertexPosition.y/540.0, 0.0, 1.0);\n "
 "     outFloatChannelX = aVertexPosition.x/(uRangeX * 2.0);\n"
 "     outFloatChannelY = aVertexPosition.y/(uRangeY * 2.0);\n"
 "     outFloatChannelZ = aVertexPosition.z/450.0f;\n"
@@ -246,7 +246,7 @@ static const char srv_vert_shader[] =
 #endif
 
 " void main(void) {\n "
-"     gl_Position = uMVMatrix * vec4(aVertexPosition.x, aVertexPosition.y, aVertexPosition.z, 1.0);\n "
+"     gl_Position = vec4(aVertexPosition.x/540.0, aVertexPosition.y/540.0, 0.0, 1.0);\n "
 "     outNormTexture.x = aTextureCoord1.t/uTextureX;\n"
 "     outNormTexture.y = aTextureCoord1.s/uTextureY;\n"
 "     outNormTexture1.x = aTextureCoord2.t/uTextureX;\n"
@@ -513,7 +513,6 @@ int srv_setup(render_state_t *pObj)
 	GL_CHECK(glGetAttribLocation);
 	vertexTexCoord2AttribLoc = glGetAttribLocation(uiProgramObject, "aTextureCoord2");
 	GL_CHECK(glGetAttribLocation);
-
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 #ifndef STANDALONE
 	appEglCheckGlError("glClearColor");
@@ -607,7 +606,6 @@ void surroundview_init_vertices_vbo_wrap(render_state_t *pObj)
 				sizeof(srv_blend_lut_t)*QUADRANT_WIDTH*QUADRANT_HEIGHT
 				);
 	}
-
 	index_buffer_changed = false;
 	lut_updated = false;
 }
@@ -680,7 +678,12 @@ void onscreen_mesh_state_restore_vbo(render_state_t *pObj,
 void srv_draw(render_state_t *pObj, GLuint *texYuv, int viewport_id)
 {
 	int i;
+	static int quadrant_mode = -1;
 	GLuint *tex = texYuv;
+	if(quadrant_mode < 0)
+	{
+		quadrant_mode = getenv("APP_SRV_QUADRANT_MODE") != NULL;
+	}
 	if(prevLUT != pObj->LUT3D || index_buffer_changed == true || lut_updated == true)
 	{
 		prevLUT = pObj->LUT3D;
@@ -695,8 +698,10 @@ void srv_draw(render_state_t *pObj, GLuint *texYuv, int viewport_id)
 	//then change the meshes and draw
 	for(i = 0;i < QUADRANTS;i ++)
 	{
+		int tex1 = quadrant_mode ? (3-i) : (0+i)%4;
+		int tex2 = quadrant_mode ? tex1 : (3+i)%4;
 		onscreen_mesh_state_restore_program_textures_attribs(
-				pObj, tex, (0+i)%4, (3+i)%4, viewport_id);
+				pObj, tex, tex1, tex2, viewport_id);
 		onscreen_mesh_state_restore_vbo(
 				pObj, vboId[i*3], vboId[i*3+1], vboId[i*3+2]);
 		GL_CHECK(onscreen_mesh_state_restore_vbo);

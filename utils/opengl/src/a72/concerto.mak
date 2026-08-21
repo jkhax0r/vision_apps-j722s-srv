@@ -11,7 +11,7 @@ IDIRS       += $(LINUX_FS_PATH)/usr/include
 IDIRS       += $(LINUX_FS_PATH)/usr/include/drm
 IDIRS       += $(LINUX_FS_PATH)/usr/include/libdrm
 
-CSOURCES    := app_gl_egl_utils_linux.c
+CSOURCES    := app_gl_egl_utils_linux.c xdg-shell-protocol.c
 
 CFLAGS      += -DEGL_NO_X11
 
@@ -28,4 +28,3 @@ include $(FINALE)
 endif
 endif
 endif
-

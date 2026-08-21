@@ -70,6 +70,9 @@ Limited License.
 #include <xf86drm.h>
 #include <drm.h>
 #include <drm_fourcc.h>
+#include <wayland-client.h>
+#include <wayland-egl.h>
+#include "xdg-shell-client-protocol.h"
 #endif
 
 #include <utils/opengl/include/app_gl_egl_utils.h>
@@ -105,10 +108,128 @@ typedef struct
     int drm_fd;
     struct gbm_device *gbm_dev;
     struct gbm_surface *gbm_surface;
+    struct wl_display *wl_display;
+    struct wl_compositor *wl_compositor;
+    struct xdg_wm_base *xdg_wm_base;
+    struct wl_surface *wl_surface;
+    struct xdg_surface *xdg_surface;
+    struct xdg_toplevel *xdg_toplevel;
+    struct wl_egl_window *wl_egl_window;
+    int wayland_configured;
+    int wayland_closed;
     PFNEGLGETPLATFORMDISPLAYEXTPROC get_platform_display;
     PFNEGLCREATEPLATFORMWINDOWSURFACEEXTPROC create_platform_window_surface;
 
 } app_egl_obj_t;
+
+#ifndef x86_64
+static void appEglWaylandRegistryGlobal(void *data, struct wl_registry *registry,
+        uint32_t name, const char *interface, uint32_t version)
+{
+    app_egl_obj_t *obj = (app_egl_obj_t *)data;
+
+    if (strcmp(interface, wl_compositor_interface.name) == 0)
+    {
+        uint32_t bind_version = version < 4u ? version : 4u;
+        obj->wl_compositor = wl_registry_bind(
+            registry, name, &wl_compositor_interface, bind_version);
+    }
+    else if (strcmp(interface, xdg_wm_base_interface.name) == 0)
+    {
+        uint32_t bind_version = version < 2u ? version : 2u;
+        obj->xdg_wm_base = wl_registry_bind(
+            registry, name, &xdg_wm_base_interface, bind_version);
+    }
+}
+
+static void appEglWaylandRegistryRemove(void *data, struct wl_registry *registry,
+        uint32_t name)
+{
+    (void)data;
+    (void)registry;
+    (void)name;
+}
+
+static const struct wl_registry_listener app_egl_registry_listener = {
+    appEglWaylandRegistryGlobal,
+    appEglWaylandRegistryRemove,
+};
+
+static void appEglWaylandPing(void *data, struct xdg_wm_base *wm_base,
+        uint32_t serial)
+{
+    (void)data;
+    xdg_wm_base_pong(wm_base, serial);
+}
+
+static const struct xdg_wm_base_listener app_egl_wm_base_listener = {
+    appEglWaylandPing,
+};
+
+static void appEglWaylandSurfaceConfigure(void *data,
+        struct xdg_surface *xdg_surface, uint32_t serial)
+{
+    app_egl_obj_t *obj = (app_egl_obj_t *)data;
+
+    xdg_surface_ack_configure(xdg_surface, serial);
+    obj->wayland_configured = 1;
+}
+
+static const struct xdg_surface_listener app_egl_surface_listener = {
+    appEglWaylandSurfaceConfigure,
+};
+
+static void appEglWaylandToplevelConfigure(void *data,
+        struct xdg_toplevel *xdg_toplevel, int32_t width, int32_t height,
+        struct wl_array *states)
+{
+    (void)data;
+    (void)xdg_toplevel;
+    (void)width;
+    (void)height;
+    (void)states;
+}
+
+static void appEglWaylandToplevelClose(void *data,
+        struct xdg_toplevel *xdg_toplevel)
+{
+    app_egl_obj_t *obj = (app_egl_obj_t *)data;
+
+    (void)xdg_toplevel;
+    obj->wayland_closed = 1;
+}
+
+static const struct xdg_toplevel_listener app_egl_toplevel_listener = {
+    appEglWaylandToplevelConfigure,
+    appEglWaylandToplevelClose,
+};
+
+static void appEglWaylandCloseNative(app_egl_obj_t *obj)
+{
+    if (obj->wl_egl_window != NULL)
+        wl_egl_window_destroy(obj->wl_egl_window);
+    if (obj->xdg_toplevel != NULL)
+        xdg_toplevel_destroy(obj->xdg_toplevel);
+    if (obj->xdg_surface != NULL)
+        xdg_surface_destroy(obj->xdg_surface);
+    if (obj->wl_surface != NULL)
+        wl_surface_destroy(obj->wl_surface);
+    if (obj->xdg_wm_base != NULL)
+        xdg_wm_base_destroy(obj->xdg_wm_base);
+    if (obj->wl_compositor != NULL)
+        wl_compositor_destroy(obj->wl_compositor);
+    if (obj->wl_display != NULL)
+        wl_display_disconnect(obj->wl_display);
+
+    obj->wl_egl_window = NULL;
+    obj->xdg_toplevel = NULL;
+    obj->xdg_surface = NULL;
+    obj->wl_surface = NULL;
+    obj->xdg_wm_base = NULL;
+    obj->wl_compositor = NULL;
+    obj->wl_display = NULL;
+}
+#endif
 
 
 void appEglPrintGLString(const char *name, GLenum s)
@@ -191,6 +312,11 @@ void *appEglWindowOpen()
     EGLint minorVersion;
     int32_t ret = 0;
     uint32_t count;
+#ifndef x86_64
+    const int use_wayland = (getenv("APP_EGL_WAYLAND") != NULL);
+    uint32_t window_width = 1280u;
+    uint32_t window_height = 800u;
+#endif
 
     const EGLint attribs[] = {
        EGL_RED_SIZE, 8,
@@ -215,6 +341,15 @@ void *appEglWindowOpen()
     obj->drm_fd = -1;
     obj->gbm_dev = NULL;
     obj->gbm_surface = NULL;
+    obj->wl_display = NULL;
+    obj->wl_compositor = NULL;
+    obj->xdg_wm_base = NULL;
+    obj->wl_surface = NULL;
+    obj->xdg_surface = NULL;
+    obj->xdg_toplevel = NULL;
+    obj->wl_egl_window = NULL;
+    obj->wayland_configured = 0;
+    obj->wayland_closed = 0;
     obj->surface = EGL_NO_SURFACE;
 
     for(count=0; count < APP_EGL_MAX_TEXTURES; count++)
@@ -235,6 +370,77 @@ void *appEglWindowOpen()
 
     egl_platform_extensions = eglQueryString(EGL_NO_DISPLAY, EGL_EXTENSIONS);
 
+#ifndef x86_64
+    if (use_wayland)
+    {
+        const char *width_env = getenv("APP_EGL_WIDTH");
+        const char *height_env = getenv("APP_EGL_HEIGHT");
+        const char *app_id_env = getenv("APP_EGL_APP_ID");
+        struct wl_registry *registry;
+
+        if (width_env != NULL)
+            window_width = (uint32_t)strtoul(width_env, NULL, 0);
+        if (height_env != NULL)
+            window_height = (uint32_t)strtoul(height_env, NULL, 0);
+
+        obj->wl_display = wl_display_connect(NULL);
+        if (obj->wl_display == NULL)
+        {
+            printf("EGL: ERROR: wl_display_connect() failed !!!\n");
+            goto destroy_gbm_surface;
+        }
+
+        registry = wl_display_get_registry(obj->wl_display);
+        wl_registry_add_listener(registry, &app_egl_registry_listener, obj);
+        wl_display_roundtrip(obj->wl_display);
+        wl_registry_destroy(registry);
+        if ((obj->wl_compositor == NULL) || (obj->xdg_wm_base == NULL))
+        {
+            printf("EGL: ERROR: Wayland compositor or xdg_wm_base unavailable !!!\n");
+            goto destroy_gbm_surface;
+        }
+
+        xdg_wm_base_add_listener(
+            obj->xdg_wm_base, &app_egl_wm_base_listener, obj);
+        obj->wl_surface = wl_compositor_create_surface(obj->wl_compositor);
+        obj->xdg_surface = xdg_wm_base_get_xdg_surface(
+            obj->xdg_wm_base, obj->wl_surface);
+        xdg_surface_add_listener(
+            obj->xdg_surface, &app_egl_surface_listener, obj);
+        obj->xdg_toplevel = xdg_surface_get_toplevel(obj->xdg_surface);
+        xdg_toplevel_add_listener(
+            obj->xdg_toplevel, &app_egl_toplevel_listener, obj);
+        xdg_toplevel_set_title(obj->xdg_toplevel, "TI SRV Live");
+        xdg_toplevel_set_app_id(
+            obj->xdg_toplevel,
+            app_id_env != NULL ? app_id_env : "com.enovation.Installer");
+        xdg_toplevel_set_fullscreen(obj->xdg_toplevel, NULL);
+        wl_surface_commit(obj->wl_surface);
+        while (!obj->wayland_configured && !obj->wayland_closed)
+        {
+            if (wl_display_dispatch(obj->wl_display) < 0)
+                goto destroy_gbm_surface;
+        }
+
+        obj->wl_egl_window = wl_egl_window_create(
+            obj->wl_surface, (int)window_width, (int)window_height);
+        if (obj->wl_egl_window == NULL)
+        {
+            printf("EGL: ERROR: wl_egl_window_create() failed !!!\n");
+            goto destroy_gbm_surface;
+        }
+        obj->create_platform_window_surface =
+            (void *)eglGetProcAddress("eglCreatePlatformWindowSurfaceEXT");
+        if (obj->create_platform_window_surface == NULL)
+        {
+            printf("EGL: ERROR: eglCreatePlatformWindowSurfaceEXT unavailable !!!\n");
+            goto destroy_gbm_surface;
+        }
+        obj->display = obj->get_platform_display(
+            EGL_PLATFORM_WAYLAND_KHR, obj->wl_display, NULL);
+    }
+    else
+#endif
     if (has_extension(egl_platform_extensions, "EGL_MESA_platform_surfaceless"))
     {
         obj->display = obj->get_platform_display(EGL_PLATFORM_SURFACELESS_MESA,
@@ -297,7 +503,7 @@ void *appEglWindowOpen()
         goto terminate_display;
     }
 
-    if (obj->gbm_surface)
+    if (obj->gbm_surface || obj->wl_egl_window)
     {
         if (!eglChooseConfig(obj->display, attribs, &obj->config, 1, &num_configs))
         {
@@ -325,9 +531,12 @@ void *appEglWindowOpen()
     appEglPrintGLString("Renderer", GL_RENDERER);
     appEglPrintGLString("Extensions", GL_EXTENSIONS);
 
-    if (obj->gbm_surface)
+    if (obj->gbm_surface || obj->wl_egl_window)
     {
-        obj->surface = obj->create_platform_window_surface(obj->display, obj->config, obj->gbm_surface, NULL);
+        void *native_window = obj->gbm_surface != NULL
+            ? (void *)obj->gbm_surface : (void *)obj->wl_egl_window;
+        obj->surface = obj->create_platform_window_surface(
+            obj->display, obj->config, native_window, NULL);
         appEglCheckEglError("eglCreateWindowSurface", EGL_TRUE);
         if (obj->surface == EGL_NO_SURFACE)
         {
@@ -355,6 +564,9 @@ destroy_context:
 terminate_display:
     eglTerminate(obj->display);
 destroy_gbm_surface:
+#ifndef x86_64
+    appEglWaylandCloseNative(obj);
+#endif
     if (obj->gbm_surface)
         gbm_surface_destroy(obj->gbm_surface);
 destroy_gbm_device:
@@ -384,6 +596,13 @@ void appEglSwap(void *eglWindow)
             struct gbm_bo *bo = gbm_surface_lock_front_buffer(obj->gbm_surface);
             gbm_surface_release_buffer(obj->gbm_surface, bo);
         }
+#ifndef x86_64
+        if (obj->wl_display != NULL)
+        {
+            wl_display_dispatch_pending(obj->wl_display);
+            wl_display_flush(obj->wl_display);
+        }
+#endif
     }
 }
 
@@ -745,6 +964,9 @@ int32_t appEglWindowClose(void *eglWindow)
         gbm_device_destroy(obj->gbm_dev);
         close(obj->drm_fd);
     }
+#ifndef x86_64
+    appEglWaylandCloseNative(obj);
+#endif
 
     free(obj);
 
