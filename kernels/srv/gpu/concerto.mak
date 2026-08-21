@@ -25,7 +25,7 @@ IDIRS       += $(QNX_TARGET)/usr/include
 endif
 
 ifeq ($(SOC),$(filter $(SOC), j722s am62a))
-SKIPBUILD=1
+SKIPBUILD=0
 endif
 
 include $(FINALE)

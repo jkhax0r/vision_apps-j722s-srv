@@ -184,8 +184,10 @@ static void srv_bowl_lut_gen_createNodes(srv_bowl_lut_gen_handle handle)
     appCntxt = (srv_bowl_lut_gen_context *)handle;
 
     appCntxt->bowl_gen_node = tivxGenerate3DbowlNode(appCntxt->vxGraph, appCntxt->in_config, appCntxt->in_calmat, appCntxt->in_offset, appCntxt->lut3dxyz, appCntxt->calmat_scaled);
+    vxSetNodeTarget(appCntxt->bowl_gen_node, VX_TARGET_STRING, TIVX_TARGET_DSP2);
 
     appCntxt->gpu_lut_gen_node = tivxGenerateGpulutNode(appCntxt->vxGraph, appCntxt->in_config, appCntxt->in_ldclut, appCntxt->calmat_scaled, appCntxt->lut3dxyz, appCntxt->out_gpulut3d);
+    vxSetNodeTarget(appCntxt->gpu_lut_gen_node, VX_TARGET_STRING, TIVX_TARGET_DSP2);
 }
 
 static void srv_bowl_lut_gen_freeNodes(srv_bowl_lut_gen_handle handle)

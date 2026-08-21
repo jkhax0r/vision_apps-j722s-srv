@@ -34,7 +34,7 @@ IDIRS       += $(VXLIB_PATH)/packages
 IDIRS       += $(VISION_APPS_PATH)/kernels/srv/gpu/3dsrv
 
 ifeq ($(SOC),$(filter $(SOC), j722s am62a))
-SKIPBUILD=1
+SKIPBUILD=0
 endif
 
 include $(FINALE)

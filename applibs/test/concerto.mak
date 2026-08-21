@@ -70,7 +70,7 @@ CFLAGS      += -DTARGET_X86_64
 endif
 
 ifeq ($(SOC),j722s)
-SKIPBUILD=1
+SKIPBUILD=0
 endif
 
 include $(FINALE)

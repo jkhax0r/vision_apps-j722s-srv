@@ -766,7 +766,7 @@ static void appRegisterOpenVXTargetKernels()
         #endif
 
         #ifdef CPU_c7x_2
-        /* tivxRegisterSrvTargetC66Kernels(); */
+        tivxRegisterSrvTargetC66Kernels();
         tivxRegisterHwaTargetArmKernels();
         /* tivxRegisterImgProcTargetC66Kernels(); */
         #endif

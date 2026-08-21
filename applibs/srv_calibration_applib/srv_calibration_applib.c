@@ -236,10 +236,12 @@ static void srv_calib_createNodes(srv_calib_handle handle)
     appCntxt->in_element = (vx_image)vxGetObjectArrayItem((vx_object_array)appCntxt->in_array, 0);
 
     appCntxt->point_detect_node = tivxPointDetectNode(appCntxt->vxGraph, appCntxt->point_detect_in_config_element, appCntxt->in_ldclut, appCntxt->in_element, appCntxt->out_configuration, appCntxt->buf_bwluma_frame_element);
+    vxSetNodeTarget(appCntxt->point_detect_node, VX_TARGET_STRING, TIVX_TARGET_DSP2);
 
     vxReplicateNode(appCntxt->vxGraph, appCntxt->point_detect_node, replicate, 5);
 
     appCntxt->pose_estimation_node = tivxPoseEstimationNode(appCntxt->vxGraph, appCntxt->pose_estimation_in_config, appCntxt->in_ldclut, appCntxt->in_corner_points, appCntxt->out_calmat);
+    vxSetNodeTarget(appCntxt->pose_estimation_node, VX_TARGET_STRING, TIVX_TARGET_DSP2);
 }
 
 static void srv_calib_freeNodes(srv_calib_handle handle)

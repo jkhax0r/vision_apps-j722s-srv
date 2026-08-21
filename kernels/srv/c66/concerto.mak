@@ -25,9 +25,9 @@ include $(FINALE)
 
 endif
 
-ifeq ($(TARGET_PLATFORM), $(filter $(TARGET_PLATFORM), J721S2 J784S4 J742S2))
+ifeq ($(TARGET_PLATFORM), $(filter $(TARGET_PLATFORM), J721S2 J784S4 J742S2 J722S))
 
-ifeq ($(TARGET_CPU), $(filter $(TARGET_CPU), C7120))
+ifeq ($(TARGET_CPU), $(filter $(TARGET_CPU), C7524))
 
 include $(PRELUDE)
 TARGET      := vx_target_kernels_srv_c66
@@ -47,8 +47,12 @@ ifeq ($(TARGET_CPU), $(filter $(TARGET_CPU), C7120))
 DEFS += C6X_MIGRATION _TMS320C6600
 endif
 
+ifeq ($(TARGET_CPU), $(filter $(TARGET_CPU), C7524))
+DEFS += C6X_MIGRATION _TMS320C6600 __C7524__
+endif
+
 ifeq ($(SOC),j722s)
-SKIPBUILD=1
+SKIPBUILD=0
 endif
 
 include $(FINALE)

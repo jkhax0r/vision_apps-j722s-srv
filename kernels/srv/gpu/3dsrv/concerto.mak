@@ -25,7 +25,7 @@ CSOURCES    := $(call all-c-files)
 CPPSOURCES  := $(call all-cpp-files)
 
 ifeq ($(SOC),$(filter $(SOC), j722s am62a))
-SKIPBUILD=1
+SKIPBUILD=0
 endif
 
 include $(FINALE)
@@ -51,7 +51,7 @@ CSOURCES    := $(call all-c-files)
 CPPSOURCES  := $(call all-cpp-files)
 
 ifeq ($(SOC),$(filter $(SOC), j722s am62a))
-SKIPBUILD=1
+SKIPBUILD=0
 endif
 
 include $(FINALE)

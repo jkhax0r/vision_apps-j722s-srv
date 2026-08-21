@@ -42,7 +42,7 @@ SYS_SHARED_LIBS += EGL
 SYS_SHARED_LIBS += GLESv2
 
 ifeq ($(SOC),j722s)
-SKIPBUILD=1
+SKIPBUILD=0
 endif
 
 include $(FINALE)

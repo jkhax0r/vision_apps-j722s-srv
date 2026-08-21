@@ -24,7 +24,7 @@ ifeq ($(SOC), $(filter $(SOC), j721e j721s2 j784s4 j722s j742s2))
 STATIC_LIBS     += $(VISION_APPS_OPENGL_UTILS_LIBS)
 STATIC_LIBS     += $(VISION_APPS_SAMPLE_LIBS)
 STATIC_LIBS     += $(VISION_APPS_STEREO_LIBS)
-ifeq ($(SOC), $(filter $(SOC), j721e j721s2 j784s4 j742s2))
+ifeq ($(SOC), $(filter $(SOC), j721e j721s2 j784s4 j742s2 j722s))
 STATIC_LIBS     += $(VISION_APPS_SRV_LIBS)
 endif
 

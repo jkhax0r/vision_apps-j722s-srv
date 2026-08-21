@@ -71,7 +71,7 @@
 #ifdef HOST_EMULATION
 #include "C6xSimulator.h"
 #else
-#if defined (__C7100__) || defined (__C7120__)
+#if defined (__C7100__) || defined (__C7120__) || defined (__C7524__)
     #include <c7x.h>
     #if defined (C6X_MIGRATION)
         #include <c6x_migration.h>
