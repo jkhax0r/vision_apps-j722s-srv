@@ -71,7 +71,13 @@
 
 #define ENABLE_IPC_MPU1_0
 //#define ENABLE_IPC_MCU1_0
-#define ENABLE_IPC_MCU2_0
+/*
+ * JK TI-SRV smoke path: the current OpenViewPro 6.12 image boots the
+ * main R5 firmware but does not expose the rpmsg_chrdev endpoint that
+ * Linux appInit() expects for MCU2_0. Keep the host-side smoke app on
+ * MPU + C7x IPC so tivxGlSrvNode can be validated independently.
+ */
+//#define ENABLE_IPC_MCU2_0
 #define ENABLE_IPC_C7x_1
 #define ENABLE_IPC_C7x_2
 
