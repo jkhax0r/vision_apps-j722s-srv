@@ -16,11 +16,12 @@ The expected printed dimensions are:
 - Outer black square: 3.500 x 3.500 inches.
 - Inner white square: 1.167 x 1.167 inches.
 - Left and right margins: 0.250 inch.
-- Bottom margin: 0.856 inch.
-- Top margin: 1.644 inches.
+- Bottom margin: 1.644 inches.
+- Top margin: 0.856 inch.
 
-The target is intentionally shifted 10 mm below vertical center to compensate
-for the tested thermal printer's feeder offset.
+The target is intentionally shifted 10 mm above the original vertically
+centered position to compensate for the tested thermal printer's feeder
+offset.
 
 Measure the outer square horizontally and vertically on the first label. If
 either dimension differs materially from 3.500 inches, correct the printer
