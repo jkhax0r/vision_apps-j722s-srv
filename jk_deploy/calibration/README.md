@@ -1,7 +1,12 @@
 # 4x6 Thermal-Label Calibration Target
 
-`ti_srv_target_4x6.pdf` is a one-page, vector calibration target sized for a
-standard 4x6-inch portrait thermal label. Print four identical copies.
+These one-page vector targets are sized for a standard 4x6-inch portrait
+thermal label. Choose one placement and print four identical copies:
+
+- `ti_srv_target_4x6_centered.pdf`: vertically centered.
+- `ti_srv_target_4x6_10mm_up.pdf`: shifted 10 mm above center.
+- `ti_srv_target_4x6_10mm_down.pdf`: shifted 10 mm below center.
+- `ti_srv_target_4x6.pdf`: compatibility alias of the 10 mm-up version.
 
 ## Print Settings
 
@@ -16,12 +21,13 @@ The expected printed dimensions are:
 - Outer black square: 3.500 x 3.500 inches.
 - Inner white square: 1.167 x 1.167 inches.
 - Left and right margins: 0.250 inch.
-- Bottom margin: 1.644 inches.
-- Top margin: 0.856 inch.
+Vertical margins depend on the selected version:
 
-The target is intentionally shifted 10 mm above the original vertically
-centered position to compensate for the tested thermal printer's feeder
-offset.
+| Version | Bottom margin | Top margin |
+| --- | ---: | ---: |
+| Centered | 1.250 inches | 1.250 inches |
+| 10 mm up | 1.644 inches | 0.856 inch |
+| 10 mm down | 0.856 inch | 1.644 inches |
 
 Measure the outer square horizontally and vertically on the first label. If
 either dimension differs materially from 3.500 inches, correct the printer
@@ -40,13 +46,8 @@ that origin. Each camera must see the two complete targets on its side.
 
 ## Regenerate The PDF
 
-From this directory:
+From this directory, regenerate every PDF with:
 
 ```sh
-gs -q -dSAFER -dBATCH -dNOPAUSE \
-  -sDEVICE=pdfwrite \
-  -dDEVICEWIDTHPOINTS=288 -dDEVICEHEIGHTPOINTS=432 \
-  -dFIXEDMEDIA \
-  -sOutputFile=ti_srv_target_4x6.pdf \
-  ti_srv_target_4x6.ps
+./generate_targets.sh
 ```

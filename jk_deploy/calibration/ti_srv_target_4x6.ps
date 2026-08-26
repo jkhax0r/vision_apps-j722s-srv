@@ -7,12 +7,15 @@
 
 << /PageSize [288 432] >> setpagedevice
 
-% 4x6-inch portrait label. The target is centered and uses the same 3:1
-% outer-to-inner square ratio as TI's supplied SRV calibration poster.
+% 4x6-inch portrait label using the same 3:1 outer-to-inner square ratio as
+% TI's supplied SRV calibration poster. Pass -dtargetOffsetMM=<millimeters>
+% to shift the target vertically from center; positive values move it up.
 /outerSize 252 def       % 3.500 inches
 /innerSize 84 def        % 1.167 inches
 /outerX 18 def           % 0.250-inch side margins
-/outerY 118.3465 def     % Shifted up 10 mm from the centered position
+/targetOffsetMM where { pop } { /targetOffsetMM 0 def } ifelse
+/pointsPerMM 72 25.4 div def
+/outerY 90 targetOffsetMM pointsPerMM mul add def
 /innerX outerX outerSize innerSize sub 2 div add def
 /innerY outerY outerSize innerSize sub 2 div add def
 
