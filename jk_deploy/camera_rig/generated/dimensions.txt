@@ -1,0 +1,5 @@
+tripod_hub: 160.00 x 160.00 x 37.50 mm, volume=90337.8 mm^3
+technexion_carrier: 60.00 x 36.00 x 22.00 mm, volume=8430.2 mm^3
+analog_flush_carrier: 45.60 x 40.00 x 50.00 mm, volume=11292.5 mm^3
+analog_fit_coupon: 84.00 x 32.00 x 3.20 mm, volume=5936.3 mm^3
+tripod_nut_fit_coupon: 30.00 x 26.00 x 7.50 mm, volume=5108.3 mm^3

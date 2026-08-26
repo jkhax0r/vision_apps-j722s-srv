@@ -32,6 +32,12 @@ does not commit those generated binaries.
 The app intentionally enters after the raw-sensor/VISS portion of TI's stock
 SRV diagram. TEVS and ISL79987 inputs already arrive as processed UYVY.
 
+## Camera Fixture
+
+The printable four-camera tripod hub, adjustable TechNexion and analog camera
+carriers, fit coupons, CAD sources, and assembly instructions are under
+[`camera_rig/`](camera_rig/README.md).
+
 ## Build
 
 ```sh
