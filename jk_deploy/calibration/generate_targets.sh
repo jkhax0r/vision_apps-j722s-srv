@@ -22,3 +22,23 @@ generate_target 0 ti_srv_target_4x6_centered.pdf
 generate_target 10 ti_srv_target_4x6_10mm_up.pdf
 generate_target -10 ti_srv_target_4x6_10mm_down.pdf
 generate_target 10 ti_srv_target_4x6.pdf
+
+render_sp410_png() {
+    local input="$1"
+    local output="$2"
+
+    # A complete 4x6-inch label at the SP410 native 203 DPI. Baking the white
+    # margins into a fixed raster stops PDF viewers from cropping/recentering.
+    gs -q -dSAFER -dBATCH -dNOPAUSE \
+        -sDEVICE=pngmono \
+        -r203 \
+        -g812x1218 \
+        -dFIXEDMEDIA \
+        -dPDFFitPage \
+        -sOutputFile="$SCRIPT_DIR/$output" \
+        "$SCRIPT_DIR/$input"
+}
+
+render_sp410_png ti_srv_target_4x6_centered.pdf ti_srv_target_4x6_centered_203dpi.png
+render_sp410_png ti_srv_target_4x6_10mm_up.pdf ti_srv_target_4x6_10mm_up_203dpi.png
+render_sp410_png ti_srv_target_4x6_10mm_down.pdf ti_srv_target_4x6_10mm_down_203dpi.png

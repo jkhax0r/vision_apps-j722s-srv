@@ -19,6 +19,11 @@
 /innerX outerX outerSize innerSize sub 2 div add def
 /innerY outerY outerSize innerSize sub 2 div add def
 
+% Make the whole MediaBox explicit. Some print paths otherwise infer the page
+% bounds from only the black target and silently recenter that content.
+1 setgray
+0 0 288 432 rectfill
+
 0 setgray
 outerX outerY outerSize outerSize rectfill
 
