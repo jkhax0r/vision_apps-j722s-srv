@@ -16,7 +16,6 @@ CAM_WIDTH="${CAM_WIDTH:-1280}"
 CAM_HEIGHT="${CAM_HEIGHT:-720}"
 CAM_FPS="${CAM_FPS:-60}"
 
-APP_MAIN_PID=
 AHSOKA_WAS_ACTIVE=0
 
 configure_gmsl() {
@@ -81,10 +80,6 @@ restore_ahsoka() {
     set +e
     if [ "$AHSOKA_WAS_ACTIVE" -eq 1 ]; then
         echo "Restoring the stock Ahsoka camera configuration..."
-        if [ -n "$APP_MAIN_PID" ] && kill -0 "$APP_MAIN_PID" 2>/dev/null; then
-            kill -CONT "$APP_MAIN_PID" 2>/dev/null || true
-        fi
-        systemctl stop Ahsoka.Application.service
         configure_gmsl 1920 1200 30
         systemctl start Ahsoka.Application.service
         XDG_RUNTIME_DIR="$XDG_RUNTIME_DIR" WAYLAND_DISPLAY="$WAYLAND_DISPLAY" \
@@ -95,16 +90,13 @@ trap restore_ahsoka EXIT INT TERM
 
 if systemctl is-active --quiet Ahsoka.Application.service; then
     AHSOKA_WAS_ACTIVE=1
-    APP_MAIN_PID="$(systemctl show Ahsoka.Application.service -p MainPID --value)"
-    if [ "${APP_MAIN_PID:-0}" -gt 0 ]; then
-        echo "Freezing Ahsoka controller (PID $APP_MAIN_PID)..."
-        kill -STOP "$APP_MAIN_PID"
-    fi
+    echo "Stopping the stock Ahsoka application..."
+    systemctl stop Ahsoka.Application.service
 fi
 
 PREVIEW_PIDS="$(pgrep -f '^/usr/local/Ahsoka/current/AhsokaLib/Ahsoka.VideoPlayer ' || true)"
 if [ -n "$PREVIEW_PIDS" ]; then
-    echo "Stopping Ahsoka camera previews..."
+    echo "Stopping remaining Ahsoka camera previews..."
     kill -TERM $PREVIEW_PIDS
 fi
 
