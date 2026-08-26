@@ -62,3 +62,31 @@ From this directory, regenerate every PDF with:
 ```sh
 ./generate_targets.sh
 ```
+
+## Capture Camera Images
+
+Mount the cameras in their final positions and place the four targets so each
+camera sees the two complete targets on its side. Keep the rig and targets
+stationary, then run this from the SDK host:
+
+```sh
+TARGET=root@192.168.20.222 ./jk_deploy/capture_and_fetch_calibration.sh
+```
+
+The target warms up all four streams, takes a near-simultaneous frame from
+each, and restores the stock Ahsoka application afterward. Captures are saved
+under `jk_deploy/calibration/captures/TIMESTAMP/` with:
+
+- Four `640x480` NV12 `.yuv` files for TI's `420sp` input fields.
+- Four PNG previews for identifying each physical camera direction.
+- `manifest.txt` with capture slots, device nodes, format, and checksums.
+- `capture.log` with the complete target-side run.
+
+The capture checks each frame's luma range. A uniform decoder no-signal image,
+such as the analog inputs' solid blue frame, makes the command fail while
+still fetching the archive and PNG previews for diagnosis.
+
+In the TI calibration tool, enter camera count `4`, height `480`, width `640`,
+and pitch `640`. Assign each YUV file to front/right/back/left according to the
+PNG previews and the final physical mounting. Camera slot names identify the
+capture connector only; they do not imply a physical direction.

@@ -11,3 +11,4 @@ platform/*/rtos/*/generated
 *.out
 *.raw
 jk_deploy/artifacts/
+jk_deploy/calibration/captures/

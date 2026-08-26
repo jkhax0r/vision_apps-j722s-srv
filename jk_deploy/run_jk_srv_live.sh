@@ -15,24 +15,86 @@ CAM_MEDIA="${CAM_MEDIA:-/dev/media0}"
 CAM_WIDTH="${CAM_WIDTH:-1280}"
 CAM_HEIGHT="${CAM_HEIGHT:-720}"
 CAM_FPS="${CAM_FPS:-60}"
-CAM_FMT="[fmt:UYVY8_1X16/${CAM_WIDTH}x${CAM_HEIGHT}@1/${CAM_FPS} field:none colorspace:srgb ycbcr:601 quantization:full-range]"
-CAM_FMT_NO_FPS="[fmt:UYVY8_1X16/${CAM_WIDTH}x${CAM_HEIGHT} field:none colorspace:srgb ycbcr:601 quantization:full-range]"
-CAM_FMT_SIMPLE="[fmt:UYVY8_1X16/${CAM_WIDTH}x${CAM_HEIGHT} field:none]"
 
 APP_MAIN_PID=
+AHSOKA_WAS_ACTIVE=0
+
+configure_gmsl() {
+    local width="$1"
+    local height="$2"
+    local fps="$3"
+    local fmt="[fmt:UYVY8_1X16/${width}x${height}@1/${fps} field:none colorspace:srgb ycbcr:601 quantization:full-range]"
+    local fmt_no_fps="[fmt:UYVY8_1X16/${width}x${height} field:none colorspace:srgb ycbcr:601 quantization:full-range]"
+    local fmt_simple="[fmt:UYVY8_1X16/${width}x${height} field:none]"
+    local topology
+    local max_entity
+    local entity
+    local subdev
+    local index
+    local stream
+    local -a tevs_entities
+
+    topology="$(media-ctl -d "$CAM_MEDIA" -p)"
+    max_entity="$(printf '%s\n' "$topology" | awk -F': | \\(' '/^- entity .*: max96716-tevs / {print $2; exit}')"
+    mapfile -t tevs_entities < <(printf '%s\n' "$topology" | awk -F': | \\(' '/^- entity .*: tevs / {print $2}')
+
+    if [ -z "$max_entity" ] || [ "${#tevs_entities[@]}" -ne 2 ]; then
+        echo "Expected one MAX96716 and two TEVS sensors on $CAM_MEDIA" >&2
+        media-ctl -d "$CAM_MEDIA" -p >&2
+        return 1
+    fi
+
+    echo "Configuring ${tevs_entities[*]} for ${width}x${height}@${fps}..."
+    for index in 0 1; do
+        entity="${tevs_entities[$index]}"
+        subdev="$(printf '%s\n' "$topology" | awk -v entity="$entity" '
+            /^- entity / && index($0, ": " entity " (") { inside=1; next }
+            inside && /device node name/ { print $4; exit }
+            inside && /^- entity / { exit }
+        ')"
+        v4l2-ctl -d "$subdev" --set-ctrl=max_fps="$fps" >/dev/null || true
+        media-ctl -d "$CAM_MEDIA" -V "\"$entity\":0/0 $fmt" || \
+            media-ctl -d "$CAM_MEDIA" -V "\"$entity\":0/0 $fmt_no_fps"
+    done
+
+    media-ctl -d "$CAM_MEDIA" -V "\"$max_entity\":0/0 $fmt_simple"
+    media-ctl -d "$CAM_MEDIA" -V "\"$max_entity\":0/1 $fmt_simple"
+
+    for stream in 0 1; do
+        media-ctl -d "$CAM_MEDIA" -V "\"cdns_csi2rx.30101000.csi-bridge\":0/$stream $fmt_no_fps"
+        media-ctl -d "$CAM_MEDIA" -V "\"cdns_csi2rx.30101000.csi-bridge\":1/$stream $fmt_no_fps"
+    done
+
+    media-ctl -d "$CAM_MEDIA" -V "\"30102000.ticsi2rx\":0/0 $fmt_no_fps"
+    media-ctl -d "$CAM_MEDIA" -V "\"30102000.ticsi2rx\":0/1 $fmt_no_fps"
+    media-ctl -d "$CAM_MEDIA" -V "\"30102000.ticsi2rx\":1/0 $fmt_no_fps"
+    media-ctl -d "$CAM_MEDIA" -V "\"30102000.ticsi2rx\":2/0 $fmt_no_fps"
+
+    v4l2-ctl -d /usr/local/Ahsoka/devices/video/gmsl0 \
+        --set-fmt-video=width="$width",height="$height",pixelformat=UYVY >/dev/null
+    v4l2-ctl -d /usr/local/Ahsoka/devices/video/gmsl1 \
+        --set-fmt-video=width="$width",height="$height",pixelformat=UYVY >/dev/null
+}
 
 restore_ahsoka() {
     trap - EXIT INT TERM
-    XDG_RUNTIME_DIR="$XDG_RUNTIME_DIR" WAYLAND_DISPLAY="$WAYLAND_DISPLAY" \
-        LayerManagerControl set surface 1001 visibility 1 >/dev/null 2>&1 || true
-    if [ -n "$APP_MAIN_PID" ] && kill -0 "$APP_MAIN_PID" 2>/dev/null; then
-        echo "Resuming the stock Ahsoka application..."
-        kill -CONT "$APP_MAIN_PID" 2>/dev/null || true
+    set +e
+    if [ "$AHSOKA_WAS_ACTIVE" -eq 1 ]; then
+        echo "Restoring the stock Ahsoka camera configuration..."
+        if [ -n "$APP_MAIN_PID" ] && kill -0 "$APP_MAIN_PID" 2>/dev/null; then
+            kill -CONT "$APP_MAIN_PID" 2>/dev/null || true
+        fi
+        systemctl stop Ahsoka.Application.service
+        configure_gmsl 1920 1200 30
+        systemctl start Ahsoka.Application.service
+        XDG_RUNTIME_DIR="$XDG_RUNTIME_DIR" WAYLAND_DISPLAY="$WAYLAND_DISPLAY" \
+            LayerManagerControl set surface 1001 visibility 1 >/dev/null 2>&1 || true
     fi
 }
 trap restore_ahsoka EXIT INT TERM
 
 if systemctl is-active --quiet Ahsoka.Application.service; then
+    AHSOKA_WAS_ACTIVE=1
     APP_MAIN_PID="$(systemctl show Ahsoka.Application.service -p MainPID --value)"
     if [ "${APP_MAIN_PID:-0}" -gt 0 ]; then
         echo "Freezing Ahsoka controller (PID $APP_MAIN_PID)..."
@@ -63,46 +125,7 @@ done
 XDG_RUNTIME_DIR="$XDG_RUNTIME_DIR" WAYLAND_DISPLAY="$WAYLAND_DISPLAY" \
     LayerManagerControl set surface 1001 visibility 0 >/dev/null 2>&1 || true
 
-MEDIA_TOPOLOGY="$(media-ctl -d "$CAM_MEDIA" -p)"
-MAX_ENTITY="$(printf '%s\n' "$MEDIA_TOPOLOGY" | awk -F': | \\(' '/^- entity .*: max96716-tevs / {print $2; exit}')"
-mapfile -t TEVS_ENTITIES < <(printf '%s\n' "$MEDIA_TOPOLOGY" | awk -F': | \\(' '/^- entity .*: tevs / {print $2}')
-
-if [ -z "$MAX_ENTITY" ] || [ "${#TEVS_ENTITIES[@]}" -ne 2 ]; then
-    echo "Expected one MAX96716 and two TEVS sensors on $CAM_MEDIA" >&2
-    media-ctl -d "$CAM_MEDIA" -p >&2
-    exit 1
-fi
-
-echo "Configuring ${TEVS_ENTITIES[*]} for ${CAM_WIDTH}x${CAM_HEIGHT}@${CAM_FPS}..."
-for index in 0 1; do
-    entity="${TEVS_ENTITIES[$index]}"
-    subdev="$(printf '%s\n' "$MEDIA_TOPOLOGY" | awk -v entity="$entity" '
-        /^- entity / && index($0, ": " entity " (") { inside=1; next }
-        inside && /device node name/ { print $4; exit }
-        inside && /^- entity / { exit }
-    ')"
-    v4l2-ctl -d "$subdev" --set-ctrl=max_fps="$CAM_FPS" >/dev/null || true
-    media-ctl -d "$CAM_MEDIA" -V "\"$entity\":0/0 $CAM_FMT" || \
-        media-ctl -d "$CAM_MEDIA" -V "\"$entity\":0/0 $CAM_FMT_NO_FPS"
-done
-
-media-ctl -d "$CAM_MEDIA" -V "\"$MAX_ENTITY\":0/0 $CAM_FMT_SIMPLE"
-media-ctl -d "$CAM_MEDIA" -V "\"$MAX_ENTITY\":0/1 $CAM_FMT_SIMPLE"
-
-for stream in 0 1; do
-    media-ctl -d "$CAM_MEDIA" -V "\"cdns_csi2rx.30101000.csi-bridge\":0/$stream $CAM_FMT_NO_FPS"
-    media-ctl -d "$CAM_MEDIA" -V "\"cdns_csi2rx.30101000.csi-bridge\":1/$stream $CAM_FMT_NO_FPS"
-done
-
-media-ctl -d "$CAM_MEDIA" -V "\"30102000.ticsi2rx\":0/0 $CAM_FMT_NO_FPS"
-media-ctl -d "$CAM_MEDIA" -V "\"30102000.ticsi2rx\":0/1 $CAM_FMT_NO_FPS"
-media-ctl -d "$CAM_MEDIA" -V "\"30102000.ticsi2rx\":1/0 $CAM_FMT_NO_FPS"
-media-ctl -d "$CAM_MEDIA" -V "\"30102000.ticsi2rx\":2/0 $CAM_FMT_NO_FPS"
-
-v4l2-ctl -d /usr/local/Ahsoka/devices/video/gmsl0 \
-    --set-fmt-video=width="$CAM_WIDTH",height="$CAM_HEIGHT",pixelformat=UYVY >/dev/null
-v4l2-ctl -d /usr/local/Ahsoka/devices/video/gmsl1 \
-    --set-fmt-video=width="$CAM_WIDTH",height="$CAM_HEIGHT",pixelformat=UYVY >/dev/null
+configure_gmsl "$CAM_WIDTH" "$CAM_HEIGHT" "$CAM_FPS"
 
 cd /opt/jk-ti-srv
 ./vx_app_jk_srv_live.out "$@"

@@ -77,6 +77,13 @@ static const char *default_devices[NUM_CAMERAS] = {
     "/usr/local/Ahsoka/devices/video/analog1",
 };
 
+static const char *calibration_camera_names[NUM_CAMERAS] = {
+    "camera0_gmsl0_640x480_nv12.yuv",
+    "camera1_gmsl1_640x480_nv12.yuv",
+    "camera2_analog0_640x480_nv12.yuv",
+    "camera3_analog1_640x480_nv12.yuv",
+};
+
 static void release_image(vx_image *image)
 {
     if ((image != NULL) && (*image != NULL))
@@ -572,11 +579,129 @@ static vx_status write_image_raw(const char *path, vx_image image)
     return status;
 }
 
+static vx_status write_image_nv12(const char *path, vx_image image)
+{
+    vx_status status;
+    vx_uint32 width = 0;
+    vx_uint32 height = 0;
+    vx_df_image format = 0;
+    vx_rectangle_t rect;
+    vx_imagepatch_addressing_t addr;
+    vx_map_id map_id;
+    uint8_t *base = NULL;
+    uint8_t *nv12 = NULL;
+    size_t y_plane_size;
+    size_t output_size;
+    FILE *fp = NULL;
+    uint32_t x;
+    uint32_t y;
+
+    status = vxQueryImage(image, VX_IMAGE_WIDTH, &width, sizeof(width));
+    if (status == VX_SUCCESS)
+    {
+        status = vxQueryImage(image, VX_IMAGE_HEIGHT, &height, sizeof(height));
+    }
+    if (status == VX_SUCCESS)
+    {
+        status = vxQueryImage(image, VX_IMAGE_FORMAT, &format, sizeof(format));
+    }
+    if ((status != VX_SUCCESS) || (format != VX_DF_IMAGE_UYVY) ||
+        ((width & 1u) != 0u) || ((height & 1u) != 0u))
+    {
+        return VX_ERROR_INVALID_FORMAT;
+    }
+
+    y_plane_size = (size_t)width * height;
+    output_size = y_plane_size + (y_plane_size / 2u);
+    nv12 = (uint8_t *)malloc(output_size);
+    if (nv12 == NULL)
+    {
+        return VX_ERROR_NO_MEMORY;
+    }
+
+    rect.start_x = 0;
+    rect.start_y = 0;
+    rect.end_x = width;
+    rect.end_y = height;
+    status = vxMapImagePatch(image, &rect, 0, &map_id, &addr, (void **)&base,
+                             VX_READ_ONLY, VX_MEMORY_TYPE_HOST, VX_NOGAP_X);
+    if (status != VX_SUCCESS)
+    {
+        free(nv12);
+        return status;
+    }
+
+    if (addr.stride_x != 2)
+    {
+        status = VX_ERROR_NOT_SUPPORTED;
+    }
+    else
+    {
+        for (y = 0; y < height; y++)
+        {
+            const uint8_t *src_row = base + (y * addr.stride_y);
+            uint8_t *dst_y = nv12 + ((size_t)y * width);
+
+            for (x = 0; x < width; x += 2u)
+            {
+                const uint8_t *src = src_row + (x * 2u);
+                dst_y[x] = src[1];
+                dst_y[x + 1u] = src[3];
+            }
+        }
+
+        for (y = 0; y < height; y += 2u)
+        {
+            const uint8_t *src_row0 = base + (y * addr.stride_y);
+            const uint8_t *src_row1 = base + ((y + 1u) * addr.stride_y);
+            uint8_t *dst_uv = nv12 + y_plane_size +
+                              (((size_t)y / 2u) * width);
+
+            for (x = 0; x < width; x += 2u)
+            {
+                const uint8_t *src0 = src_row0 + (x * 2u);
+                const uint8_t *src1 = src_row1 + (x * 2u);
+                dst_uv[x] = (uint8_t)(((uint32_t)src0[0] + src1[0] + 1u) / 2u);
+                dst_uv[x + 1u] =
+                    (uint8_t)(((uint32_t)src0[2] + src1[2] + 1u) / 2u);
+            }
+        }
+    }
+
+    vxUnmapImagePatch(image, map_id);
+
+    if (status == VX_SUCCESS)
+    {
+        fp = fopen(path, "wb");
+        if (fp == NULL)
+        {
+            perror(path);
+            status = VX_FAILURE;
+        }
+        else if (fwrite(nv12, 1, output_size, fp) != output_size)
+        {
+            fprintf(stderr, "%s: incomplete write\n", path);
+            status = VX_FAILURE;
+        }
+    }
+
+    if (fp != NULL)
+    {
+        fclose(fp);
+    }
+    free(nv12);
+    return status;
+}
+
 int main(int argc, char *argv[])
 {
     const char *output_path = "/tmp/jk_srv_live_rgbx_1280x800.raw";
+    const char *calibration_dir = getenv("APP_CALIB_CAPTURE_DIR");
+    const char *calibration_frame_text = getenv("APP_CALIB_CAPTURE_FRAME");
     const char *devices[NUM_CAMERAS];
     uint32_t frame_count = 0u;
+    uint32_t calibration_frame = 30u;
+    int calibration_written = 0;
     Camera cameras[NUM_CAMERAS];
     vx_context context = NULL;
     vx_graph graph = NULL;
@@ -630,10 +755,24 @@ int main(int argc, char *argv[])
         }
     }
 
+    if ((calibration_frame_text != NULL) && (calibration_frame_text[0] != '\0'))
+    {
+        calibration_frame = (uint32_t)strtoul(calibration_frame_text, NULL, 0);
+        if (calibration_frame == 0u)
+        {
+            calibration_frame = 1u;
+        }
+    }
+
     if (frame_count == 0u)
         printf("jk_srv_live: continuous output=%s\n", output_path);
     else
         printf("jk_srv_live: frames=%u output=%s\n", frame_count, output_path);
+    if ((calibration_dir != NULL) && (calibration_dir[0] != '\0'))
+    {
+        printf("jk_srv_live: calibration capture frame=%u directory=%s\n",
+               calibration_frame, calibration_dir);
+    }
 
     for (i = 0; i < NUM_CAMERAS; i++)
     {
@@ -789,9 +928,45 @@ int main(int argc, char *argv[])
                     status = workers[i].status;
                 }
             }
-            release_image(&workers[i].image);
         }
         if ((threads_started != NUM_CAMERAS) || (status != VX_SUCCESS))
+        {
+            for (i = 0; i < NUM_CAMERAS; i++)
+            {
+                release_image(&workers[i].image);
+            }
+            goto cleanup;
+        }
+
+        if ((calibration_dir != NULL) && (calibration_dir[0] != '\0') &&
+            (calibration_written == 0) && ((frame + 1u) >= calibration_frame))
+        {
+            char path[512];
+
+            for (i = 0; i < NUM_CAMERAS; i++)
+            {
+                snprintf(path, sizeof(path), "%s/%s", calibration_dir,
+                         calibration_camera_names[i]);
+                status = write_image_nv12(path, workers[i].image);
+                if (status != VX_SUCCESS)
+                {
+                    fprintf(stderr, "jk_srv_live: failed to write %s: %d\n",
+                            path, status);
+                    break;
+                }
+                printf("jk_srv_live: wrote %s (640x480 NV12/420sp)\n", path);
+            }
+            if (status == VX_SUCCESS)
+            {
+                calibration_written = 1;
+            }
+        }
+
+        for (i = 0; i < NUM_CAMERAS; i++)
+        {
+            release_image(&workers[i].image);
+        }
+        if (status != VX_SUCCESS)
         {
             goto cleanup;
         }
@@ -816,6 +991,16 @@ int main(int argc, char *argv[])
         }
     }
     end_time = now_seconds();
+
+    if ((calibration_dir != NULL) && (calibration_dir[0] != '\0') &&
+        (calibration_written == 0))
+    {
+        fprintf(stderr,
+                "jk_srv_live: stopped before calibration frame %u was captured\n",
+                calibration_frame);
+        status = VX_FAILURE;
+        goto cleanup;
+    }
 
     status = write_image_raw(output_path, output);
     if (status == VX_SUCCESS)
