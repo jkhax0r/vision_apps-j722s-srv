@@ -1,0 +1,26 @@
+%!PS-Adobe-3.0
+%%Title: TI SRV 4x6 Calibration Target
+%%Creator: JK J722S SRV bring-up
+%%Pages: 1
+%%BoundingBox: 0 0 288 432
+%%EndComments
+
+<< /PageSize [288 432] >> setpagedevice
+
+% 4x6-inch portrait label. The target is centered and uses the same 3:1
+% outer-to-inner square ratio as TI's supplied SRV calibration poster.
+/outerSize 252 def       % 3.500 inches
+/innerSize 84 def        % 1.167 inches
+/outerX 18 def           % 0.250-inch side margins
+/outerY 90 def           % 1.250-inch top/bottom margins
+/innerX outerX outerSize innerSize sub 2 div add def
+/innerY outerY outerSize innerSize sub 2 div add def
+
+0 setgray
+outerX outerY outerSize outerSize rectfill
+
+1 setgray
+innerX innerY innerSize innerSize rectfill
+
+showpage
+%%EOF
