@@ -3,6 +3,7 @@ technexion_carrier: 58.00 x 36.00 x 53.00 mm, volume=12027.9 mm^3
 analog_flush_carrier: 45.60 x 40.00 x 50.00 mm, volume=11236.3 mm^3
 analog_fit_coupon: 84.00 x 32.00 x 3.20 mm, volume=5936.3 mm^3
 tripod_nut_fit_coupon: 34.00 x 42.00 x 7.50 mm, volume=9857.9 mm^3
+tripod_nut_1_4_20: 12.82 x 11.10 x 5.60 mm, volume=457.3 mm^3
 pivot_detent_clevis_coupon: 22.00 x 32.00 x 37.50 mm, volume=10182.6 mm^3
 pivot_detent_tongue_coupon: 20.00 x 8.20 x 20.00 mm, volume=2926.0 mm^3
 tripod_mount_hardware_reference: 14.00 x 23.28 x 10.10 mm, solids=3 (reference only)

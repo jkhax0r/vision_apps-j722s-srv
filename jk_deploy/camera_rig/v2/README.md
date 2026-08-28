@@ -27,6 +27,11 @@ The hardware models omit helical threads and are for assembly/reference only.
 Purchase metal hardware; do not print the files containing `reference` or
 `preview` in their names.
 
+`generated/tripod_nut_1_4_20.stl` is the exception: it is a standalone,
+printable 1/4-20 nut with extra thread clearance for FDM printing. It fits the
+hub's captured-nut pocket. Use it for fitting and light stationary use; retain
+the standard steel nut for the finished rig.
+
 ## Print First
 
 1. Print `generated/pivot_detent_clevis_coupon.stl` and
@@ -54,6 +59,7 @@ measure its pin diameter and center spacing before changing the generator.
 | `generated/pivot_detent_tongue_coupon.stl` | 1 initially |
 | `generated/analog_fit_coupon.stl` | 1 initially |
 | `generated/tripod_nut_fit_coupon.stl` | 1 initially |
+| `generated/tripod_nut_1_4_20.stl` | 1 optional |
 
 The carrier STLs are already oriented for printing. The TechNexion front frame
 and analog panel sit on the build plate. STEP files retain assembly coordinates

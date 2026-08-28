@@ -33,6 +33,12 @@ TRIPOD_NUT_ACROSS_FLATS = 11.5
 TRIPOD_NUT_DEPTH = 6.0
 TRIPOD_NUT_REFERENCE_ACROSS_FLATS = 11.1
 TRIPOD_NUT_REFERENCE_HEIGHT = 5.6
+TRIPOD_THREAD_PITCH = 25.4 / 20.0
+TRIPOD_PRINTED_THREAD_MINOR_DIAMETER = 5.3
+TRIPOD_PRINTED_THREAD_MAJOR_DIAMETER = 6.76
+TRIPOD_PRINTED_THREAD_HALF_WIDTH = 0.40
+TRIPOD_PRINTED_THREAD_ENTRY_CHAMFER = 0.60
+TRIPOD_PRINTED_THREAD_CUTTER_OVERLAP = 0.20
 TRIPOD_STABILIZER_OFFSET = 14.0
 TRIPOD_STABILIZER_HOLE_DIAMETER = 5.2
 TRIPOD_STABILIZER_HOLE_DEPTH = 5.2
@@ -495,6 +501,79 @@ def make_tripod_nut_reference() -> cq.Workplane:
     return nut.cut(thread_bore)
 
 
+def make_printable_tripod_nut() -> cq.Workplane:
+    """Make a loose-fit 1/4-20 nut sized for the hub's captured-nut pocket."""
+    nut = (
+        cq.Workplane("XY")
+        .polygon(6, hex_circumdiameter(TRIPOD_NUT_REFERENCE_ACROSS_FLATS))
+        .extrude(TRIPOD_NUT_REFERENCE_HEIGHT)
+    )
+
+    minor_radius = TRIPOD_PRINTED_THREAD_MINOR_DIAMETER / 2.0
+    major_radius = TRIPOD_PRINTED_THREAD_MAJOR_DIAMETER / 2.0
+    profile_inner_radius = minor_radius - TRIPOD_PRINTED_THREAD_CUTTER_OVERLAP
+    helix_start = -TRIPOD_THREAD_PITCH
+    thread_path = cq.Wire.makeHelix(
+        TRIPOD_THREAD_PITCH,
+        TRIPOD_NUT_REFERENCE_HEIGHT + (2.0 * TRIPOD_THREAD_PITCH),
+        major_radius,
+        center=(0.0, 0.0, helix_start),
+    )
+    thread_profile = (
+        cq.Workplane("XZ")
+        .moveTo(
+            profile_inner_radius,
+            helix_start - TRIPOD_PRINTED_THREAD_HALF_WIDTH,
+        )
+        .lineTo(major_radius, helix_start)
+        .lineTo(
+            profile_inner_radius,
+            helix_start + TRIPOD_PRINTED_THREAD_HALF_WIDTH,
+        )
+        .close()
+        .wire()
+        .val()
+    )
+    thread_cutter = cq.Workplane(
+        obj=cq.Solid.sweep(
+            thread_profile,
+            [],
+            thread_path,
+            makeSolid=True,
+            isFrenet=True,
+        )
+    )
+    bore = (
+        cq.Workplane("XY")
+        .circle(minor_radius)
+        .extrude(TRIPOD_NUT_REFERENCE_HEIGHT + 2.0)
+        .translate((0.0, 0.0, -1.0))
+    )
+
+    entry_radius = major_radius + TRIPOD_PRINTED_THREAD_ENTRY_CHAMFER
+    entry_inner_radius = minor_radius + (TRIPOD_PRINTED_THREAD_CUTTER_OVERLAP / 2.0)
+    bottom_entry = cq.Workplane(
+        obj=cq.Solid.makeCone(
+            entry_radius,
+            entry_inner_radius,
+            TRIPOD_PRINTED_THREAD_ENTRY_CHAMFER,
+        )
+    )
+    top_entry = cq.Workplane(
+        obj=cq.Solid.makeCone(
+            entry_inner_radius,
+            entry_radius,
+            TRIPOD_PRINTED_THREAD_ENTRY_CHAMFER,
+            pnt=cq.Vector(
+                0.0,
+                0.0,
+                TRIPOD_NUT_REFERENCE_HEIGHT - TRIPOD_PRINTED_THREAD_ENTRY_CHAMFER,
+            ),
+        )
+    )
+    return nut.cut(bore).cut(thread_cutter).cut(bottom_entry).cut(top_entry)
+
+
 def make_tripod_screw_reference() -> cq.Workplane:
     shaft = (
         cq.Workplane("XY").circle(6.2 / 2.0).extrude(4.7).translate((0.0, 0.0, -0.2))
@@ -673,6 +752,7 @@ def generate(output_dir: Path, tilt_degrees: float) -> None:
     analog = make_analog_carrier()
     analog_coupon = make_analog_fit_coupon()
     nut_coupon = make_tripod_nut_coupon()
+    printable_tripod_nut = make_printable_tripod_nut()
     detent_clevis_coupon = make_detent_clevis_coupon()
     detent_tongue_coupon = make_detent_tongue_coupon()
     technexion_camera = make_technexion_mockup()
@@ -714,6 +794,7 @@ def generate(output_dir: Path, tilt_degrees: float) -> None:
         ),
         export_part(output_dir, "analog_fit_coupon", analog_coupon),
         export_part(output_dir, "tripod_nut_fit_coupon", nut_coupon),
+        export_part(output_dir, "tripod_nut_1_4_20", printable_tripod_nut),
         export_part(output_dir, "pivot_detent_clevis_coupon", detent_clevis_coupon),
         export_part(
             output_dir,
