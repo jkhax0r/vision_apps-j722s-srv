@@ -55,6 +55,9 @@ TECH_BODY_HEIGHT = 29.5
 TECH_CAMERA_CENTER_X = 31.0
 TECH_SHELF_CENTER_X = 30.0
 TECH_SHELF_LENGTH = 36.0
+TECH_SUPPORT_SPINE_START_X = 5.0
+TECH_SUPPORT_SPINE_END_X = 38.0
+TECH_SUPPORT_SPINE_BOTTOM_Z = 2.0
 TECH_CRADLE_CLEARANCE = 0.5
 TECH_WALL_THICKNESS = 2.5
 TECH_FRONT_APERTURE = 25.0
@@ -191,7 +194,8 @@ def make_pivot_tongue() -> cq.Workplane:
 
 def make_technexion_carrier() -> cq.Workplane:
     # Keep the wide shelf outside the hub ears through the useful tilt range.
-    # A narrow bridge passes through the clevis gap and joins it to the tongue.
+    # A deep, narrow spine passes through the clevis gap, overlaps the tongue,
+    # and continues under the camera to carry its bending load into the pivot.
     shelf_z = 8.0
     shelf_top = 12.0
     shelf = (
@@ -199,12 +203,23 @@ def make_technexion_carrier() -> cq.Workplane:
         .box(TECH_SHELF_LENGTH, 36.0, 4.0, centered=(True, True, False))
         .translate((TECH_SHELF_CENTER_X, 0.0, shelf_z))
     )
-    bridge = (
+    support_spine = (
         cq.Workplane("XY")
-        .box(8.0, TONGUE_THICKNESS, 4.0, centered=(True, True, True))
-        .translate((11.0, 0.0, 9.0))
+        .box(
+            TECH_SUPPORT_SPINE_END_X - TECH_SUPPORT_SPINE_START_X,
+            TONGUE_THICKNESS,
+            shelf_top - TECH_SUPPORT_SPINE_BOTTOM_Z,
+            centered=(True, True, True),
+        )
+        .translate(
+            (
+                (TECH_SUPPORT_SPINE_START_X + TECH_SUPPORT_SPINE_END_X) / 2.0,
+                0.0,
+                (TECH_SUPPORT_SPINE_BOTTOM_Z + shelf_top) / 2.0,
+            )
+        )
     )
-    carrier = make_pivot_tongue().union(bridge).union(shelf)
+    carrier = make_pivot_tongue().union(support_spine).union(shelf)
 
     # The camera drops in from above. Side walls control roll and lateral
     # motion, while the perforated front frame catches the lens-plane corners

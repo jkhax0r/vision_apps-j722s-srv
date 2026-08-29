@@ -20,6 +20,8 @@ the CAD assembly.
   1/4-20 screw center as specified by ISO 1222.
 - TechNexion side walls and a lens-plane front frame with a 25 mm aperture.
   The original M3 mounting holes remain available.
+- A 10 mm-deep center spine carries the TechNexion shelf load into the pivot
+  tongue and continues beneath the camera body to prevent joint creep.
 - Modeled 1/4-20 tripod nut, representative tripod screw and lock pin, and four
   M4 x 30 pivot bolt/washer/nut stacks.
 
