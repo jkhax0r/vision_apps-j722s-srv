@@ -63,9 +63,10 @@ measure its pin diameter and center spacing before changing the generator.
 | `generated/tripod_nut_fit_coupon.stl` | 1 initially |
 | `generated/tripod_nut_1_4_20.stl` | 1 optional |
 
-The carrier STLs are already oriented for printing. The TechNexion front frame
-and analog panel sit on the build plate. STEP files retain assembly coordinates
-for CAD modification.
+The carrier STLs are already oriented for printing. The TechNexion carrier lies
+on one side so its pivot-to-camera spine runs within the layers; use
+build-plate-only support beneath the pivot tongue. The analog panel sits on the
+build plate. STEP files retain assembly coordinates for CAD modification.
 
 Every arm uses the same tongue interface. Four TechNexion carriers may be
 printed and installed instead when the final camera set becomes all-TechNexion.

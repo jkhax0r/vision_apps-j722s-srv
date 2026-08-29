@@ -721,8 +721,9 @@ def place_on_build_plate(part: cq.Workplane) -> cq.Workplane:
 
 
 def orient_technexion_for_printing(part: cq.Workplane) -> cq.Workplane:
-    # Put the broad lens-plane frame on the bed and grow the cradle rearward.
-    return place_on_build_plate(part.rotate((0, 0, 0), (0, 1, 0), 90.0))
+    # Put one cradle side on the bed so the pivot-to-camera spine remains in
+    # the layer plane instead of depending on inter-layer tension strength.
+    return place_on_build_plate(part.rotate((0, 0, 0), (1, 0, 0), 90.0))
 
 
 def orient_analog_for_printing(part: cq.Workplane) -> cq.Workplane:
