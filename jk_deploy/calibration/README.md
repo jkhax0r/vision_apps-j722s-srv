@@ -137,3 +137,10 @@ rear-view camera image. It rotates both TechNexion inputs 180 degrees to match
 their physical mounting orientation. These transforms are applied before
 writing calibration YUVs or sending frames to the GPU. Calibration output
 generated from older YUV orientations must not be reused.
+
+## Current Calibration Output
+
+The output currently used by the live TI GPU stitch is versioned under
+`outputs/20260901T192501Z/`. It contains every file emitted by the calibration
+tool. The normal deploy script installs the complete set for inspection and
+copies `CALMAT.BIN`, `LENS.BIN`, and `CHARTPOS.BIN` into the runtime data path.

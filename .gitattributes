@@ -1,0 +1,2 @@
+jk_deploy/calibration/outputs/** -diff -text
+jk_deploy/calibration/outputs/**/README.md diff text

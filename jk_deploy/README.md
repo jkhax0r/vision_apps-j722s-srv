@@ -66,7 +66,8 @@ TARGET=root@TARGET_IP SSH_ARGS='-i ~/.ssh/target_key' ./jk_deploy/deploy.sh
 
 The deployer refuses to replace files while `vx_app_jk_srv_live.out` is
 running. It saves previous files under `/root/jk-ti-srv-backups/TIMESTAMP/`,
-then installs the application, matching `libtivision_apps`, and launcher.
+then installs the application, matching `libtivision_apps`, launcher, complete
+versioned calibration output, and runtime calibration BIN files.
 
 ## Run
 
