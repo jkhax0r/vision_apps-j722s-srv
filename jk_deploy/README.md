@@ -22,7 +22,7 @@ does not commit those generated binaries.
 ```text
 4 V4L2 UYVY capture nodes
   -> mmap dequeue
-  -> full-frame 640x480 host fit / analog field reweave
+  -> full-frame 640x480 host fit / analog field reweave and X unmirror
   -> OpenVX object array with 4 images
   -> tivxGlSrvNode on the GPU
   -> RGBX render target

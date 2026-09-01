@@ -80,7 +80,7 @@ done
     echo "Analog frames include the same field reweave used by the live SRV app."
     echo "All inputs preserve the complete field of view seen by the GPU node."
     echo "GMSL 1920x1200 frames are fit to 640x400 with 40-pixel top/bottom bars."
-    echo "Analog 720x480 samples are normalized to the complete 640x480 image."
+    echo "Analog 720x480 samples are normalized to 640x480 and unmirrored in X."
     if [ "${#LUMA_SUMMARIES[@]}" -gt 0 ]; then
         echo
         echo "Luma validation:"

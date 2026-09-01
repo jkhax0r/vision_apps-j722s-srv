@@ -131,3 +131,9 @@ The mounted camera order was verified with a physical marker on 2026-09-01:
 Viewed from above, the clockwise order is `analog0`, `gmsl1`, `analog1`,
 `gmsl0`. Re-verify this table after moving cameras between physical mounts or
 rewiring camera inputs.
+
+The analog cameras emit a rear-view mirror image. The JK input path therefore
+unmirrors `analog0` and `analog1` horizontally before writing calibration YUVs
+or sending frames to the GPU. The TechNexion GMSL inputs are not mirrored.
+Calibration output generated from older, uncorrected analog YUVs must not be
+reused.

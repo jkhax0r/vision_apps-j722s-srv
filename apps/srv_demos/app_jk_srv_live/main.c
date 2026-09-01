@@ -71,6 +71,7 @@ typedef struct {
     uint32_t source_x_for_pair[IN_WIDTH / 2u];
     uint32_t source_y_for_line[IN_HEIGHT];
     int stacked_fields;
+    int mirror_x;
 } Camera;
 
 static const char *default_devices[NUM_CAMERAS] = {
@@ -198,6 +199,7 @@ static int camera_open(Camera *camera, const char *path)
            path, camera->width, camera->height, camera->stride, camera->sizeimage);
 
     camera->stacked_fields = strstr(path, "analog") != NULL;
+    camera->mirror_x = camera->stacked_fields;
     if (camera->stacked_fields != 0)
     {
         /* 720x480 NTSC samples describe a 4:3 image with non-square pixels. */
@@ -221,9 +223,10 @@ static int camera_open(Camera *camera, const char *path)
     }
     camera->output_x = ((IN_WIDTH - camera->output_width) / 2u) & ~1u;
     camera->output_y = (IN_HEIGHT - camera->output_height) / 2u;
-    printf("%s: full-frame fit=%ux%u offset=%u,%u\n", path,
+    printf("%s: full-frame fit=%ux%u offset=%u,%u mirror-x=%s\n", path,
            camera->output_width, camera->output_height,
-           camera->output_x, camera->output_y);
+           camera->output_x, camera->output_y,
+           camera->mirror_x != 0 ? "yes" : "no");
 
     for (x = 0; x < camera->output_width; x += 2u)
     {
@@ -234,6 +237,10 @@ static int camera_open(Camera *camera, const char *path)
         if (source_x > (camera->width - 2u))
         {
             source_x = camera->width - 2u;
+        }
+        if (camera->mirror_x != 0)
+        {
+            source_x = camera->width - 2u - source_x;
         }
         camera->source_x_for_pair[x / 2u] = source_x;
     }
@@ -456,10 +463,17 @@ static vx_status fit_uyvy_from_uyvy(vx_image image,
                 uint32_t source_x = camera->source_x_for_pair[x / 2u];
                 const uint8_t *src_pair = src + (source_y * camera->stride) +
                                           (source_x * 2u);
-                uint8_t *dst_pair = (uint8_t *)(void *)output_row +
-                                    ((camera->output_x + x) * 2u);
+                uint32_t pair;
 
-                memcpy(dst_pair, src_pair, 4u);
+                memcpy(&pair, src_pair, sizeof(pair));
+
+                if (camera->mirror_x != 0)
+                {
+                    pair = (pair & 0x00ff00ffu) |
+                           ((pair & 0x0000ff00u) << 16u) |
+                           ((pair & 0xff000000u) >> 16u);
+                }
+                output_row[(camera->output_x + x) / 2u] = pair;
             }
         }
 
