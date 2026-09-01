@@ -1,5 +1,28 @@
 # 4x6 Thermal-Label Calibration Target
 
+## Camera Intrinsic Checkerboard
+
+Use `camera_intrinsics_checkerboard_4x6_edge_anchors.pdf` to measure each
+camera's lens distortion before running the TI surround-view calibration. It
+contains a `7 x 9` grid with `6 x 8` detectable inner corners and exact `13 mm`
+squares. The solid 0.25-inch circles are tangent to the top and bottom label
+edges to prevent the thermal-printer path from vertically recentering the
+checkerboard.
+
+The fixed-canvas SP410 version is
+`camera_intrinsics_checkerboard_4x6_edge_anchors_203dpi.png`. Print either
+version at 100%/Actual Size on 4x6-inch media. Verify several squares measure
+`13.0 mm` horizontally and vertically, then attach the complete label to a
+flat, rigid backing. The circles are printer-registration marks and are not
+part of the checkerboard detector.
+
+For calibration, keep the camera rig fixed and capture approximately 20-25
+sharp checkerboard views per camera. Move and tilt the board so its detected
+corners cover the image center, all four edges, and all four corners. The
+entire checkerboard must be visible in each retained frame.
+
+## TI Surround-View Floor Targets
+
 These one-page vector targets are sized for a standard 4x6-inch portrait
 thermal label. Choose one placement and print four identical copies:
 

@@ -1,0 +1,48 @@
+%!PS-Adobe-3.0
+%%Title: 4x6 Camera Intrinsics Checkerboard
+%%Creator: JK J722S SRV bring-up
+%%Pages: 1
+%%BoundingBox: 0 0 288 432
+%%EndComments
+
+<< /PageSize [288 432] >> setpagedevice
+
+% Exact 4x6-inch portrait target for camera intrinsic calibration.
+% The 7x9 grid produces 6x8 detectable inner corners. Each square is 13 mm.
+/pointsPerMM 72 25.4 div def
+/squareSizeMM 13 def
+/squareSize squareSizeMM pointsPerMM mul def
+/columns 7 def
+/rows 9 def
+/boardWidth columns squareSize mul def
+/boardHeight rows squareSize mul def
+/boardX 288 boardWidth sub 2 div def
+/boardY 432 boardHeight sub 2 div def
+
+% Paint the complete MediaBox so print software cannot infer and recenter a
+% smaller content boundary.
+1 setgray
+0 0 288 432 rectfill
+
+0 1 rows 1 sub {
+    /row exch def
+    0 1 columns 1 sub {
+        /column exch def
+        row column add 2 mod 0 eq {
+            0 setgray
+            boardX column squareSize mul add
+            boardY row squareSize mul add
+            squareSize squareSize rectfill
+        } if
+    } for
+} for
+
+% Registration circles force content to both label edges, preventing the
+% SP410 print path from vertically recentering the checkerboard.
+/anchorRadius 9 def
+0 setgray
+144 anchorRadius anchorRadius 0 360 arc fill
+144 432 anchorRadius sub anchorRadius 0 360 arc fill
+
+showpage
+%%EOF
