@@ -93,3 +93,18 @@ In the TI calibration tool, enter camera count `4`, height `480`, width `640`,
 and pitch `640`. Assign each YUV file to front/right/back/left according to the
 PNG previews and the final physical mounting. Camera slot names identify the
 capture connector only; they do not imply a physical direction.
+
+## Current Tripod Camera Identities
+
+The mounted camera order was verified with a physical marker on 2026-09-01:
+
+| Direction | Capture file prefix | Stable input |
+| --- | --- | --- |
+| Front | `camera2_analog0` | `/usr/local/Ahsoka/devices/video/analog0` |
+| Right | `camera1_gmsl1` | `/usr/local/Ahsoka/devices/video/gmsl1` |
+| Rear | `camera3_analog1` | `/usr/local/Ahsoka/devices/video/analog1` |
+| Left | `camera0_gmsl0` | `/usr/local/Ahsoka/devices/video/gmsl0` |
+
+Viewed from above, the clockwise order is `analog0`, `gmsl1`, `analog1`,
+`gmsl0`. Re-verify this table after moving cameras between physical mounts or
+rewiring camera inputs.
