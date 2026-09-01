@@ -72,6 +72,7 @@ typedef struct {
     uint32_t source_y_for_line[IN_HEIGHT];
     int stacked_fields;
     int mirror_x;
+    int flip_y;
 } Camera;
 
 static const char *default_devices[NUM_CAMERAS] = {
@@ -199,7 +200,8 @@ static int camera_open(Camera *camera, const char *path)
            path, camera->width, camera->height, camera->stride, camera->sizeimage);
 
     camera->stacked_fields = strstr(path, "analog") != NULL;
-    camera->mirror_x = camera->stacked_fields;
+    camera->mirror_x = 1;
+    camera->flip_y = camera->stacked_fields == 0;
     if (camera->stacked_fields != 0)
     {
         /* 720x480 NTSC samples describe a 4:3 image with non-square pixels. */
@@ -223,10 +225,11 @@ static int camera_open(Camera *camera, const char *path)
     }
     camera->output_x = ((IN_WIDTH - camera->output_width) / 2u) & ~1u;
     camera->output_y = (IN_HEIGHT - camera->output_height) / 2u;
-    printf("%s: full-frame fit=%ux%u offset=%u,%u mirror-x=%s\n", path,
+    printf("%s: full-frame fit=%ux%u offset=%u,%u mirror-x=%s flip-y=%s\n", path,
            camera->output_width, camera->output_height,
            camera->output_x, camera->output_y,
-           camera->mirror_x != 0 ? "yes" : "no");
+           camera->mirror_x != 0 ? "yes" : "no",
+           camera->flip_y != 0 ? "yes" : "no");
 
     for (x = 0; x < camera->output_width; x += 2u)
     {
@@ -258,6 +261,10 @@ static int camera_open(Camera *camera, const char *path)
             {
                 source_y += camera->height / 2u;
             }
+        }
+        if (camera->flip_y != 0)
+        {
+            source_y = camera->height - 1u - source_y;
         }
         if (source_y >= camera->height)
         {

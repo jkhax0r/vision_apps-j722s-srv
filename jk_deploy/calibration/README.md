@@ -132,8 +132,8 @@ Viewed from above, the clockwise order is `analog0`, `gmsl1`, `analog1`,
 `gmsl0`. Re-verify this table after moving cameras between physical mounts or
 rewiring camera inputs.
 
-The analog cameras emit a rear-view mirror image. The JK input path therefore
-unmirrors `analog0` and `analog1` horizontally before writing calibration YUVs
-or sending frames to the GPU. The TechNexion GMSL inputs are not mirrored.
-Calibration output generated from older, uncorrected analog YUVs must not be
-reused.
+The JK input path mirrors both analog inputs horizontally to undo their
+rear-view camera image. It rotates both TechNexion inputs 180 degrees to match
+their physical mounting orientation. These transforms are applied before
+writing calibration YUVs or sending frames to the GPU. Calibration output
+generated from older YUV orientations must not be reused.
