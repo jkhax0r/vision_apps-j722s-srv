@@ -22,7 +22,7 @@ does not commit those generated binaries.
 ```text
 4 V4L2 UYVY capture nodes
   -> mmap dequeue
-  -> centered 640x480 host copy / analog field reweave
+  -> full-frame 640x480 host fit / analog field reweave
   -> OpenVX object array with 4 images
   -> tivxGlSrvNode on the GPU
   -> RGBX render target
@@ -73,7 +73,7 @@ then installs the application, matching `libtivision_apps`, and launcher.
 Useful overrides:
 
 ```sh
-CAM_FPS=30 /opt/jk-ti-srv/run_jk_srv_live.sh
+CAM_WIDTH=1280 CAM_HEIGHT=720 CAM_FPS=60 /opt/jk-ti-srv/run_jk_srv_live.sh
 APP_EGL_WIDTH=1280 APP_EGL_HEIGHT=800 /opt/jk-ti-srv/run_jk_srv_live.sh
 /opt/jk-ti-srv/run_jk_srv_live.sh 300 /tmp/ti-srv-300-frames.raw
 ```
@@ -83,7 +83,10 @@ boot application.
 
 ## Known Limitations
 
-- Four host copies cost roughly 80 percent of one A53 core.
+- CPU full-frame normalization of two 1920x1200 and two 720x480 inputs runs
+  this bring-up graph at roughly 15-16 fps. It is correct for static
+  calibration capture; the production 30-fps graph should perform these same
+  resize/pad transforms with VPAC/MSC.
 - No cross-camera timestamp synchronization is performed.
 - The identity layout has no calibration, overlap warping, or blending.
 - The GMSL2 and analog inputs differ in resolution, timing, lenses, and image

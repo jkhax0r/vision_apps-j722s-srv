@@ -78,7 +78,9 @@ done
     echo "Resolve each slot to front/right/back/left from the physical mounting."
     echo "The slot names do not assert a physical camera direction."
     echo "Analog frames include the same field reweave used by the live SRV app."
-    echo "All inputs use the same centered 640x480 crop seen by the GPU node."
+    echo "All inputs preserve the complete field of view seen by the GPU node."
+    echo "GMSL 1920x1200 frames are fit to 640x400 with 40-pixel top/bottom bars."
+    echo "Analog 720x480 samples are normalized to the complete 640x480 image."
     if [ "${#LUMA_SUMMARIES[@]}" -gt 0 ]; then
         echo
         echo "Luma validation:"

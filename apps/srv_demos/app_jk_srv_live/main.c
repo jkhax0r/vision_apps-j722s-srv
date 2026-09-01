@@ -2,9 +2,10 @@
  * Live V4L2 smoke test for TI's SRV GPU OpenVX node on J722S.
  *
  * This is an intentionally simple bring-up app. It captures four UYVY V4L2
- * devices, copies a centered 640x480 crop into OpenVX images, runs
+ * devices, fits each complete camera frame into a 640x480 OpenVX image, runs
  * tivxGlSrvNode(), presents the result, and optionally writes the final RGBX
- * output frame to disk.
+ * output frame to disk. The fit preserves the GMSL camera aspect ratio; the
+ * analog 720x480 samples are normalized to their intended 4:3 display shape.
  */
 
 #include <errno.h>
@@ -63,10 +64,12 @@ typedef struct {
     uint32_t sizeimage;
     CaptureBuffer buffers[CAP_BUFFERS];
     uint32_t num_buffers;
-    uint32_t copy_width;
-    uint32_t copy_height;
-    uint32_t source_x;
-    uint32_t source_y;
+    uint32_t output_x;
+    uint32_t output_y;
+    uint32_t output_width;
+    uint32_t output_height;
+    uint32_t source_x_for_pair[IN_WIDTH / 2u];
+    uint32_t source_y_for_line[IN_HEIGHT];
     int stacked_fields;
 } Camera;
 
@@ -144,6 +147,8 @@ static int camera_open(Camera *camera, const char *path)
     struct v4l2_format fmt;
     struct v4l2_requestbuffers req;
     uint32_t i;
+    uint32_t x;
+    uint32_t y;
 
     memset(camera, 0, sizeof(*camera));
     camera->path = path;
@@ -192,12 +197,67 @@ static int camera_open(Camera *camera, const char *path)
     printf("%s: %ux%u UYVY stride=%u size=%u\n",
            path, camera->width, camera->height, camera->stride, camera->sizeimage);
 
-    camera->copy_width = camera->width < IN_WIDTH ? camera->width : IN_WIDTH;
-    camera->copy_width &= ~1u;
-    camera->copy_height = camera->height < IN_HEIGHT ? camera->height : IN_HEIGHT;
-    camera->source_x = ((camera->width - camera->copy_width) / 2u) & ~1u;
-    camera->source_y = (camera->height - camera->copy_height) / 2u;
     camera->stacked_fields = strstr(path, "analog") != NULL;
+    if (camera->stacked_fields != 0)
+    {
+        /* 720x480 NTSC samples describe a 4:3 image with non-square pixels. */
+        camera->output_width = IN_WIDTH;
+        camera->output_height = IN_HEIGHT;
+    }
+    else if (((uint64_t)camera->width * IN_HEIGHT) >
+             ((uint64_t)camera->height * IN_WIDTH))
+    {
+        camera->output_width = IN_WIDTH;
+        camera->output_height =
+            (uint32_t)(((uint64_t)camera->height * IN_WIDTH) / camera->width);
+        camera->output_height &= ~1u;
+    }
+    else
+    {
+        camera->output_height = IN_HEIGHT;
+        camera->output_width =
+            (uint32_t)(((uint64_t)camera->width * IN_HEIGHT) / camera->height);
+        camera->output_width &= ~1u;
+    }
+    camera->output_x = ((IN_WIDTH - camera->output_width) / 2u) & ~1u;
+    camera->output_y = (IN_HEIGHT - camera->output_height) / 2u;
+    printf("%s: full-frame fit=%ux%u offset=%u,%u\n", path,
+           camera->output_width, camera->output_height,
+           camera->output_x, camera->output_y);
+
+    for (x = 0; x < camera->output_width; x += 2u)
+    {
+        uint32_t source_x =
+            (uint32_t)(((uint64_t)x * camera->width) /
+                       camera->output_width) & ~1u;
+
+        if (source_x > (camera->width - 2u))
+        {
+            source_x = camera->width - 2u;
+        }
+        camera->source_x_for_pair[x / 2u] = source_x;
+    }
+    for (y = 0; y < camera->output_height; y++)
+    {
+        uint32_t source_y =
+            (uint32_t)(((uint64_t)y * camera->height) / camera->output_height);
+
+        if (camera->stacked_fields != 0)
+        {
+            uint32_t line = source_y;
+
+            source_y = line / 2u;
+            if ((line & 1u) != 0u)
+            {
+                source_y += camera->height / 2u;
+            }
+        }
+        if (source_y >= camera->height)
+        {
+            source_y = camera->height - 1u;
+        }
+        camera->source_y_for_line[y] = source_y;
+    }
 
     memset(&req, 0, sizeof(req));
     req.count = CAP_BUFFERS;
@@ -338,21 +398,22 @@ static int camera_requeue(Camera *camera, struct v4l2_buffer *buf)
     return 0;
 }
 
-static vx_status fill_uyvy_from_uyvy(vx_image image,
-                                     const Camera *camera,
-                                     const uint8_t *src)
+static vx_status fit_uyvy_from_uyvy(vx_image image,
+                                    const Camera *camera,
+                                    const uint8_t *src)
 {
     vx_status status;
     vx_rectangle_t rect;
     vx_imagepatch_addressing_t addr;
     vx_map_id map_id;
     uint8_t *base = NULL;
+    uint32_t output_row[IN_WIDTH / 2u];
     uint32_t y;
 
     rect.start_x = 0;
     rect.start_y = 0;
-    rect.end_x = camera->copy_width;
-    rect.end_y = camera->copy_height;
+    rect.end_x = IN_WIDTH;
+    rect.end_y = IN_HEIGHT;
 
     status = vxMapImagePatch(image, &rect, 0, &map_id, &addr, (void **)&base,
                              VX_WRITE_ONLY, VX_MEMORY_TYPE_HOST, VX_NOGAP_X);
@@ -367,22 +428,42 @@ static vx_status fill_uyvy_from_uyvy(vx_image image,
         return VX_ERROR_NOT_SUPPORTED;
     }
 
-    for (y = 0; y < camera->copy_height; y++)
+    for (y = 0; y < IN_HEIGHT; y++)
     {
-        uint32_t source_y = camera->source_y + y;
+        uint8_t *dst_row = base + (y * addr.stride_y);
 
-        if (camera->stacked_fields != 0)
+        if ((camera->output_width != IN_WIDTH) ||
+            (camera->output_height != IN_HEIGHT))
         {
-            source_y = camera->source_y + (y / 2u);
-            if ((y & 1u) != 0u)
+            uint32_t pair;
+
+            /* Limited-range UYVY black for aspect-ratio padding. */
+            for (pair = 0; pair < (IN_WIDTH / 2u); pair++)
             {
-                source_y += camera->copy_height / 2u;
+                output_row[pair] = 0x10801080u;
             }
         }
-        const uint8_t *src_row = src +
-            (source_y * camera->stride) + (camera->source_x * 2u);
-        uint8_t *dst_row = base + (y * addr.stride_y);
-        memcpy(dst_row, src_row, camera->copy_width * 2u);
+
+        if ((y >= camera->output_y) &&
+            (y < (camera->output_y + camera->output_height)))
+        {
+            uint32_t output_y = y - camera->output_y;
+            uint32_t source_y = camera->source_y_for_line[output_y];
+            uint32_t x;
+
+            for (x = 0; x < camera->output_width; x += 2u)
+            {
+                uint32_t source_x = camera->source_x_for_pair[x / 2u];
+                const uint8_t *src_pair = src + (source_y * camera->stride) +
+                                          (source_x * 2u);
+                uint8_t *dst_pair = (uint8_t *)(void *)output_row +
+                                    ((camera->output_x + x) * 2u);
+
+                memcpy(dst_pair, src_pair, 4u);
+            }
+        }
+
+        memcpy(dst_row, output_row, IN_WIDTH * 2u);
     }
 
     return vxUnmapImagePatch(image, map_id);
@@ -410,7 +491,7 @@ static void *capture_worker(void *argument)
     worker->capture_seconds = now_seconds() - stage_start;
 
     stage_start = now_seconds();
-    worker->status = fill_uyvy_from_uyvy(
+    worker->status = fit_uyvy_from_uyvy(
         worker->image, worker->camera,
         (const uint8_t *)worker->camera->buffers[buf.index].start);
     worker->convert_seconds = now_seconds() - stage_start;
@@ -422,8 +503,7 @@ static void *capture_worker(void *argument)
     return NULL;
 }
 
-static vx_array create_uncalibrated_lut(vx_context context,
-                                        const Camera cameras[NUM_CAMERAS])
+static vx_array create_uncalibrated_lut(vx_context context)
 {
     const uint32_t entries = QUADRANTS * QUADRANT_SIZE;
     const vx_size uint16_items = (entries * sizeof(srv_lut_t)) / sizeof(vx_uint16);
@@ -447,8 +527,6 @@ static vx_array create_uncalibrated_lut(vx_context context,
     {
         const int is_left = ((quadrant == 0u) || (quadrant == 3u));
         const int is_top = (quadrant < 2u);
-        const uint32_t texture1 = quadrant;
-        const uint32_t texture2 = texture1;
         uint32_t row;
 
         for (row = 0; row < QUADRANT_HEIGHT; row++)
@@ -458,13 +536,13 @@ static vx_array create_uncalibrated_lut(vx_context context,
             {
                 srv_lut_t *entry = &lut[(quadrant * QUADRANT_SIZE) +
                                         (row * QUADRANT_WIDTH) + column];
-                uint32_t source_x1 = (column * (cameras[texture1].copy_width - 1u)) /
+                uint32_t source_x1 = (column * (IN_WIDTH - 1u)) /
                                      (QUADRANT_WIDTH - 1u);
-                uint32_t source_y1 = (row * (cameras[texture1].copy_height - 1u)) /
+                uint32_t source_y1 = (row * (IN_HEIGHT - 1u)) /
                                      (QUADRANT_HEIGHT - 1u);
-                uint32_t source_x2 = (column * (cameras[texture2].copy_width - 1u)) /
+                uint32_t source_x2 = (column * (IN_WIDTH - 1u)) /
                                      (QUADRANT_WIDTH - 1u);
-                uint32_t source_y2 = (row * (cameras[texture2].copy_height - 1u)) /
+                uint32_t source_y2 = (row * (IN_HEIGHT - 1u)) /
                                      (QUADRANT_HEIGHT - 1u);
 
                 entry->x = (GL_VERTEX_DATATYPE)(is_left
@@ -809,7 +887,7 @@ int main(int argc, char *argv[])
     inputs = vxCreateObjectArray(context, (vx_reference)exemplar, NUM_CAMERAS);
     release_image(&exemplar);
 
-    uncalibrated_lut = create_uncalibrated_lut(context, cameras);
+    uncalibrated_lut = create_uncalibrated_lut(context);
 
     memset(&params, 0, sizeof(params));
     params.cam_bpp = 12u;
