@@ -31,6 +31,10 @@
 #include <TI/video_io_kernels.h>
 #include <render.h>
 #include <utils/app_init/include/app_init.h>
+#include "lens_distortion_correction.h"
+#include "srv_common.h"
+#include "core_generate_3dbowl.h"
+#include "core_generate_gpulut.h"
 
 #define IN_WIDTH      (640u)
 #define IN_HEIGHT     (480u)
@@ -39,6 +43,15 @@
 #define NUM_CAMERAS   (4u)
 #define NUM_VIEWS     (1u)
 #define CAP_BUFFERS   (4u)
+#define SV_LUT_WIDTH  (1080u)
+#define SV_LUT_HEIGHT (1080u)
+#define SV_SUBSAMPLE  (4u)
+#define SV_XYZLUT3D_SIZE \
+    ((SV_LUT_HEIGHT / SV_SUBSAMPLE) * \
+     (SV_LUT_WIDTH / SV_SUBSAMPLE) * 3u)
+#define SV_GPULUT_SIZE \
+    (((2u + (SV_LUT_WIDTH / SV_SUBSAMPLE)) * \
+      (2u + (SV_LUT_HEIGHT / SV_SUBSAMPLE))) * 7u)
 
 extern void tivxPlatformResetObjDescTableInfo(void);
 
@@ -76,17 +89,17 @@ typedef struct {
 } Camera;
 
 static const char *default_devices[NUM_CAMERAS] = {
-    "/usr/local/Ahsoka/devices/video/gmsl0",
-    "/usr/local/Ahsoka/devices/video/gmsl1",
     "/usr/local/Ahsoka/devices/video/analog0",
+    "/usr/local/Ahsoka/devices/video/gmsl1",
     "/usr/local/Ahsoka/devices/video/analog1",
+    "/usr/local/Ahsoka/devices/video/gmsl0",
 };
 
 static const char *calibration_camera_names[NUM_CAMERAS] = {
-    "camera0_gmsl0_640x480_nv12.yuv",
-    "camera1_gmsl1_640x480_nv12.yuv",
-    "camera2_analog0_640x480_nv12.yuv",
-    "camera3_analog1_640x480_nv12.yuv",
+    "camera0_front_analog0_640x480_nv12.yuv",
+    "camera1_right_gmsl1_640x480_nv12.yuv",
+    "camera2_back_analog1_640x480_nv12.yuv",
+    "camera3_left_gmsl0_640x480_nv12.yuv",
 };
 
 static void release_image(vx_image *image)
@@ -524,6 +537,255 @@ static void *capture_worker(void *argument)
     return NULL;
 }
 
+static int make_calibration_path(char *path, size_t path_size,
+                                 const char *filename)
+{
+    const char *data_root = getenv("VX_TEST_DATA_PATH");
+    int length;
+
+    if ((data_root == NULL) || (data_root[0] == '\0'))
+    {
+        data_root = ".";
+    }
+    length = snprintf(path, path_size, "%s/psdkra/srv/srv_app/%s",
+                      data_root, filename);
+    return ((length >= 0) && ((size_t)length < path_size)) ? 0 : -1;
+}
+
+static int read_calmat(svCalmat_t *calmat)
+{
+    char path[512];
+    FILE *fp;
+    uint32_t camera;
+
+    memset(calmat, 0, sizeof(*calmat));
+    if (make_calibration_path(path, sizeof(path), "CALMAT.BIN") != 0)
+    {
+        return -1;
+    }
+    fp = fopen(path, "rb");
+    if (fp == NULL)
+    {
+        fprintf(stderr, "jk_srv_live: cannot open %s: %s\n",
+                path, strerror(errno));
+        return -1;
+    }
+
+    if ((fread(&calmat->numCameras, 1, sizeof(calmat->numCameras), fp) !=
+         sizeof(calmat->numCameras)) ||
+        (calmat->numCameras != (int32_t)NUM_CAMERAS))
+    {
+        fprintf(stderr, "jk_srv_live: invalid camera count in %s\n", path);
+        fclose(fp);
+        return -1;
+    }
+    for (camera = 0; camera < NUM_CAMERAS; camera++)
+    {
+        if ((fread(&calmat->calMatSize[camera], 1,
+                   sizeof(calmat->calMatSize[camera]), fp) !=
+             sizeof(calmat->calMatSize[camera])) ||
+            (calmat->calMatSize[camera] != 48))
+        {
+            fprintf(stderr, "jk_srv_live: invalid camera %u matrix in %s\n",
+                    camera, path);
+            fclose(fp);
+            return -1;
+        }
+    }
+    if (fseek(fp, 128, SEEK_SET) != 0)
+    {
+        fclose(fp);
+        return -1;
+    }
+    for (camera = 0; camera < NUM_CAMERAS; camera++)
+    {
+        uint8_t *destination =
+            ((uint8_t *)calmat->calMatBuf) + (camera * 48u);
+        if (fread(destination, 1, 48u, fp) != 48u)
+        {
+            fprintf(stderr, "jk_srv_live: truncated matrix data in %s\n", path);
+            fclose(fp);
+            return -1;
+        }
+    }
+    fclose(fp);
+    printf("jk_srv_live: loaded %s\n", path);
+    return 0;
+}
+
+static int read_lens(ldc_lensParameters *lens)
+{
+    char path[512];
+    FILE *fp;
+
+    memset(lens, 0, sizeof(*lens));
+    if (make_calibration_path(path, sizeof(path), "LENS.BIN") != 0)
+    {
+        return -1;
+    }
+    fp = fopen(path, "rb");
+    if (fp == NULL)
+    {
+        fprintf(stderr, "jk_srv_live: cannot open %s: %s\n",
+                path, strerror(errno));
+        return -1;
+    }
+    if (fread(lens, 1, sizeof(*lens), fp) != sizeof(*lens))
+    {
+        fprintf(stderr, "jk_srv_live: invalid lens data in %s\n", path);
+        fclose(fp);
+        return -1;
+    }
+    fclose(fp);
+    if ((lens->ldcLUT_numCams < (int32_t)NUM_CAMERAS) ||
+        (lens->ldcLUT_D2U_length <= 0) ||
+        (lens->ldcLUT_D2U_length > LDC_D2U_TABLE_MAX_LENGTH) ||
+        (lens->ldcLUT_U2D_length <= 0) ||
+        (lens->ldcLUT_U2D_length > LDC_U2D_TABLE_MAX_LENGTH) ||
+        (lens->ldcLUT_focalLength <= 0.0f))
+    {
+        fprintf(stderr, "jk_srv_live: unsupported lens parameters in %s\n",
+                path);
+        return -1;
+    }
+    printf("jk_srv_live: loaded %s\n", path);
+    return 0;
+}
+
+static void initialize_ldc(LensDistortionCorrection *ldc,
+                           const ldc_lensParameters *lens, uint32_t camera)
+{
+    memset(ldc, 0, sizeof(*ldc));
+    ldc->distCenterX = lens->ldcLUT_distortionCenters[camera * 2u];
+    ldc->distCenterY = lens->ldcLUT_distortionCenters[camera * 2u + 1u];
+    ldc->distFocalLength = lens->ldcLUT_focalLength;
+    ldc->distFocalLengthInv = 1.0f / ldc->distFocalLength;
+    ldc->lut_d2u_indMax = lens->ldcLUT_D2U_length - 1;
+    ldc->lut_d2u_step = lens->ldcLUT_D2U_step;
+    ldc->lut_d2u_stepInv = 1.0f / ldc->lut_d2u_step;
+    ldc->lut_u2d_indMax = lens->ldcLUT_U2D_length - 1;
+    ldc->lut_u2d_step = lens->ldcLUT_U2D_step;
+    ldc->lut_u2d_stepInv = 1.0f / ldc->lut_u2d_step;
+    memcpy(ldc->lut_d2u, lens->ldcLUT_D2U_table, sizeof(ldc->lut_d2u));
+    memcpy(ldc->lut_u2d, lens->ldcLUT_U2D_table, sizeof(ldc->lut_u2d));
+}
+
+static vx_array create_calibrated_lut(vx_context context)
+{
+    vx_array lut = NULL;
+    svGpuLutGen_t config;
+    svACCalmatStruct_t scaled_calmat;
+    svGeometric_t offset;
+    svLdcLut_t lens_luts;
+    svCalmat_t calmat_file;
+    ldc_lensParameters lens_file;
+    tivxGenerateGpulutParams generate_params;
+    float *bowl_xyz = NULL;
+    uint16_t *gpu_lut = NULL;
+    vx_status status = VX_SUCCESS;
+    uint32_t camera;
+    uint32_t element;
+    int32_t lut_items = 0;
+    double start_seconds;
+
+    if ((read_calmat(&calmat_file) != 0) || (read_lens(&lens_file) != 0))
+    {
+        return NULL;
+    }
+
+    memset(&config, 0, sizeof(config));
+    config.SVInCamFrmHeight = IN_HEIGHT;
+    config.SVInCamFrmWidth = IN_WIDTH;
+    config.SVOutDisplayHeight = SV_LUT_HEIGHT;
+    config.SVOutDisplayWidth = SV_LUT_WIDTH;
+    config.numCameras = NUM_CAMERAS;
+    config.subsampleratio = SV_SUBSAMPLE;
+    config.useWideBowl = 1;
+
+    memset(&scaled_calmat, 0, sizeof(scaled_calmat));
+    for (camera = 0; camera < NUM_CAMERAS; camera++)
+    {
+        for (element = 0; element < 9u; element++)
+        {
+            scaled_calmat.scaled_outcalmat[camera * 12u + element] =
+                (float)calmat_file.calMatBuf[camera * 12u + element] /
+                1073741824.0f;
+        }
+        for (; element < 12u; element++)
+        {
+            scaled_calmat.scaled_outcalmat[camera * 12u + element] =
+                (float)calmat_file.calMatBuf[camera * 12u + element] /
+                1024.0f;
+        }
+    }
+
+    memset(&offset, 0, sizeof(offset));
+    offset.offsetXleft = -400;
+    offset.offsetXright = 400;
+    offset.offsetYfront = -450;
+    offset.offsetYback = 450;
+
+    memset(&lens_luts, 0, sizeof(lens_luts));
+    for (camera = 0; camera < NUM_CAMERAS; camera++)
+    {
+        initialize_ldc(&lens_luts.ldc[camera], &lens_file, camera);
+    }
+
+    bowl_xyz = (float *)calloc(SV_XYZLUT3D_SIZE, sizeof(*bowl_xyz));
+    gpu_lut = (uint16_t *)calloc(SV_GPULUT_SIZE, sizeof(*gpu_lut));
+    memset(&generate_params, 0, sizeof(generate_params));
+    generate_params.buf_GLUT3d_undist_size =
+        (1u + (SV_LUT_WIDTH / (2u * SV_SUBSAMPLE))) *
+        4u * 2u * sizeof(int16_t);
+    generate_params.buf_GLUT3d_undist_ptr =
+        (float *)calloc(1, generate_params.buf_GLUT3d_undist_size);
+    if ((bowl_xyz == NULL) || (gpu_lut == NULL) ||
+        (generate_params.buf_GLUT3d_undist_ptr == NULL))
+    {
+        fprintf(stderr, "jk_srv_live: calibrated LUT allocation failed\n");
+        status = VX_ERROR_NO_MEMORY;
+        goto cleanup;
+    }
+
+    start_seconds = now_seconds();
+    printf("jk_srv_live: generating TI calibrated bowl LUT on A53\n");
+    svGenerate_3D_Bowl(&config, &offset,
+                       scaled_calmat.scaled_outcalmat, bowl_xyz);
+    svGenerate_3D_GPULUT(&config, &lens_luts, &generate_params,
+                        &scaled_calmat, bowl_xyz, gpu_lut, &lut_items);
+    if ((lut_items <= 0) || ((uint32_t)lut_items > SV_GPULUT_SIZE))
+    {
+        fprintf(stderr, "jk_srv_live: TI LUT generator returned %d items\n",
+                lut_items);
+        status = VX_FAILURE;
+        goto cleanup;
+    }
+
+    lut = vxCreateArray(context, VX_TYPE_UINT16, SV_GPULUT_SIZE);
+    if (object_status((vx_reference)lut) != VX_SUCCESS)
+    {
+        status = VX_FAILURE;
+        goto cleanup;
+    }
+    status = vxAddArrayItems(lut, (vx_size)lut_items, gpu_lut,
+                             sizeof(*gpu_lut));
+    if (status == VX_SUCCESS)
+        printf("jk_srv_live: calibrated GPU LUT ready (%d uint16 items, %.3f s)\n",
+               lut_items, now_seconds() - start_seconds);
+
+cleanup:
+    free(generate_params.buf_GLUT3d_undist_ptr);
+    free(gpu_lut);
+    free(bowl_xyz);
+    if ((status != VX_SUCCESS) && (lut != NULL))
+    {
+        fprintf(stderr, "jk_srv_live: calibrated LUT generation failed: %d\n",
+                status);
+        vxReleaseArray(&lut);
+    }
+    return lut;
+}
+
 static vx_array create_uncalibrated_lut(vx_context context)
 {
     const uint32_t entries = QUADRANTS * QUADRANT_SIZE;
@@ -797,6 +1059,7 @@ int main(int argc, char *argv[])
     const char *output_path = "/tmp/jk_srv_live_rgbx_1280x800.raw";
     const char *calibration_dir = getenv("APP_CALIB_CAPTURE_DIR");
     const char *calibration_frame_text = getenv("APP_CALIB_CAPTURE_FRAME");
+    const char *use_calibration_text = getenv("APP_SRV_USE_CALIBRATION");
     const char *devices[NUM_CAMERAS];
     uint32_t frame_count = 0u;
     uint32_t calibration_frame = 30u;
@@ -810,7 +1073,7 @@ int main(int argc, char *argv[])
     vx_image output = NULL;
     vx_object_array inputs = NULL;
     vx_object_array views = NULL;
-    vx_array uncalibrated_lut = NULL;
+    vx_array srv_lut = NULL;
     vx_user_data_object params_obj = NULL;
     vx_user_data_object view_obj = NULL;
     vx_user_data_object display_params_obj = NULL;
@@ -825,6 +1088,9 @@ int main(int argc, char *argv[])
     double capture_seconds = 0.0;
     double convert_seconds = 0.0;
     double graph_seconds = 0.0;
+    int use_calibration =
+        ((use_calibration_text == NULL) ||
+         (strcmp(use_calibration_text, "0") != 0));
 
     setvbuf(stdout, NULL, _IOLBF, 0);
     setvbuf(stderr, NULL, _IOLBF, 0);
@@ -867,6 +1133,8 @@ int main(int argc, char *argv[])
         printf("jk_srv_live: continuous output=%s\n", output_path);
     else
         printf("jk_srv_live: frames=%u output=%s\n", frame_count, output_path);
+    printf("jk_srv_live: %s GPU LUT, camera order front/right/back/left\n",
+           use_calibration ? "TI calibrated" : "identity quadrant");
     if ((calibration_dir != NULL) && (calibration_dir[0] != '\0'))
     {
         printf("jk_srv_live: calibration capture frame=%u directory=%s\n",
@@ -908,7 +1176,10 @@ int main(int argc, char *argv[])
     inputs = vxCreateObjectArray(context, (vx_reference)exemplar, NUM_CAMERAS);
     release_image(&exemplar);
 
-    uncalibrated_lut = create_uncalibrated_lut(context);
+    if (use_calibration != 0)
+        srv_lut = create_calibrated_lut(context);
+    else
+        srv_lut = create_uncalibrated_lut(context);
 
     memset(&params, 0, sizeof(params));
     params.cam_bpp = 12u;
@@ -924,7 +1195,7 @@ int main(int argc, char *argv[])
     graph = vxCreateGraph(context);
 
     if ((status != VX_SUCCESS) || (inputs == NULL) || (views == NULL) ||
-        (uncalibrated_lut == NULL) ||
+        (srv_lut == NULL) ||
         (params_obj == NULL) ||
         (output == NULL) || (graph == NULL))
     {
@@ -933,7 +1204,7 @@ int main(int argc, char *argv[])
     }
 
     srv_node = tivxGlSrvNode(graph, params_obj, inputs, views,
-                            uncalibrated_lut, output);
+                            srv_lut, output);
     if (object_status((vx_reference)srv_node) != VX_SUCCESS)
     {
         status = VX_FAILURE;
@@ -1129,9 +1400,9 @@ cleanup:
     release_image(&output);
     release_user_data_object(&display_params_obj);
     release_user_data_object(&params_obj);
-    if (uncalibrated_lut != NULL)
+    if (srv_lut != NULL)
     {
-        vxReleaseArray(&uncalibrated_lut);
+        vxReleaseArray(&srv_lut);
     }
     release_object_array(&views);
     release_object_array(&inputs);

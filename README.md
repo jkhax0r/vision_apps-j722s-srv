@@ -18,27 +18,27 @@ presentation changes, and deployment tooling separate for review.
 
 `vx_app_jk_srv_live` captures four UYVY V4L2 inputs:
 
-- Two 1280x720 GMSL2 TEVS cameras.
+- Two 1920x1200 GMSL2 TEVS cameras.
 - Two 720x480 analog cameras through the ISL79987 decoder.
 
-Each input is normalized to a centered 640x480 image and passed to TI's
-`tivxGlSrvNode`. The current uncalibrated mode renders a full-screen 2x2 view:
+Each input is normalized to a centered 640x480 image in
+front/right/back/left order. TI's bowl and lens-correction algorithms generate
+a calibrated LUT from `CALMAT.BIN` and `LENS.BIN` at startup, then
+`tivxGlSrvNode` performs the live warp and blend on the GPU. Identity-quadrant
+mode remains available as a diagnostic fallback.
 
 | Position | Input |
 | --- | --- |
-| Top left | GMSL0 |
-| Top right | GMSL1 |
-| Bottom left | Analog1 |
-| Bottom right | Analog0 |
+| Front | Analog0 |
+| Right | GMSL1 |
+| Back | Analog1 |
+| Left | GMSL0 |
 
-The analog stacked fields are rewoven during the host copy. Output is a
-1280x800 fullscreen Wayland surface. On the tested target the mixed-camera
-pipeline sustained 30 fps, used about 6.1 ms per SRV graph execution, and used
-about 80 percent of one A53 core. The analog inputs set the 30 fps pace.
-
-This is a live compositor baseline, not a calibrated bird's-eye stitch. Final
-surround view still requires camera calibration, lens/placement-specific LUTs,
-overlap geometry, and blending.
+Output is a 1280x800 fullscreen Wayland surface. The calibrated mixed-camera
+pipeline currently sustains about 16 fps; host-side resize/rotation copies are
+the limiter, while the TI GPU SRV graph takes about 9.5 ms per frame. The
+current shared lens model is sufficient for bring-up but needs per-camera
+intrinsics and refined placement calibration for production-quality seams.
 
 ## Build
 

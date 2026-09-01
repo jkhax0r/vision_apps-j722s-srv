@@ -27,7 +27,19 @@ include $(VISION_APPS_PATH)/apps/concerto_x86_64_inc.mak
 SKIPBUILD=1
 endif
 
+IDIRS += $(VISION_APPS_APPLIBS_IDIRS)
 IDIRS += $(VISION_APPS_SRV_IDIRS)
+IDIRS += $(VISION_APPS_PATH)/kernels/srv/host
+IDIRS += $(VISION_APPS_PATH)
+IDIRS += $(VXLIB_PATH)/packages
+IDIRS += $(VXLIB_PATH)/packages/ti/vxlib/src/common/c6xsim
+
+DEFS += HOST_EMULATION _HOST_BUILD _TMS320C6600 TMS320C66X LITTLE_ENDIAN_HOST
+CFLAGS += -Wno-strict-aliasing -Wno-unused-variable
+# TI's C6x host simulator predates current GCC diagnostics. Keep warnings as
+# errors for the application while downgrading only diagnostics in that code.
+CFLAGS += -Wno-error=uninitialized -Wno-error=parentheses
+CFLAGS += -Wno-error=int-in-bool-context -Wno-error=unknown-pragmas
 
 STATIC_LIBS += $(VISION_APPS_OPENGL_UTILS_LIBS)
 STATIC_LIBS += $(VISION_APPS_SRV_LIBS)

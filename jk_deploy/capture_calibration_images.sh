@@ -70,13 +70,10 @@ done
     echo "camera_count=4"
     echo
     echo "Capture slots and current compositor positions:"
-    echo "camera0: /usr/local/Ahsoka/devices/video/gmsl0, top-left"
-    echo "camera1: /usr/local/Ahsoka/devices/video/gmsl1, top-right"
-    echo "camera2: /usr/local/Ahsoka/devices/video/analog0, bottom-right"
-    echo "camera3: /usr/local/Ahsoka/devices/video/analog1, bottom-left"
-    echo
-    echo "Resolve each slot to front/right/back/left from the physical mounting."
-    echo "The slot names do not assert a physical camera direction."
+    echo "camera0: front, /usr/local/Ahsoka/devices/video/analog0"
+    echo "camera1: right, /usr/local/Ahsoka/devices/video/gmsl1"
+    echo "camera2: back, /usr/local/Ahsoka/devices/video/analog1"
+    echo "camera3: left, /usr/local/Ahsoka/devices/video/gmsl0"
     echo "Analog frames include the same field reweave used by the live SRV app."
     echo "All inputs preserve the complete field of view seen by the GPU node."
     echo "GMSL frames are fit to 640x400, centered, and rotated 180 degrees."
