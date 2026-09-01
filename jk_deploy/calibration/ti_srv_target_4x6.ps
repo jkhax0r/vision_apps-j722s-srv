@@ -14,6 +14,7 @@
 /innerSize 84 def        % 1.167 inches
 /outerX 18 def           % 0.250-inch side margins
 /targetOffsetMM where { pop } { /targetOffsetMM 0 def } ifelse
+/edgeAnchors where { pop } { /edgeAnchors false def } ifelse
 /pointsPerMM 72 25.4 div def
 /outerY 90 targetOffsetMM pointsPerMM mul add def
 /innerX outerX outerSize innerSize sub 2 div add def
@@ -29,6 +30,15 @@ outerX outerY outerSize outerSize rectfill
 
 1 setgray
 innerX innerY innerSize innerSize rectfill
+
+% Optional 0.25-inch registration circles extend the content bounds to both
+% label edges without changing the centered calibration square.
+edgeAnchors {
+    /anchorRadius 9 def
+    0 setgray
+    144 anchorRadius anchorRadius 0 360 arc fill
+    144 432 anchorRadius sub anchorRadius 0 360 arc fill
+} if
 
 showpage
 %%EOF

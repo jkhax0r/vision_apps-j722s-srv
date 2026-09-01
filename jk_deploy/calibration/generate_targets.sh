@@ -23,6 +23,16 @@ generate_target 10 ti_srv_target_4x6_10mm_up.pdf
 generate_target -10 ti_srv_target_4x6_10mm_down.pdf
 generate_target 10 ti_srv_target_4x6.pdf
 
+gs -q -dSAFER -dBATCH -dNOPAUSE \
+    -sDEVICE=pdfwrite \
+    -dDEVICEWIDTHPOINTS=288 \
+    -dDEVICEHEIGHTPOINTS=432 \
+    -dFIXEDMEDIA \
+    -dtargetOffsetMM=0 \
+    -dedgeAnchors=true \
+    -sOutputFile="$SCRIPT_DIR/ti_srv_target_4x6_centered_edge_anchors.pdf" \
+    "$SOURCE"
+
 render_sp410_png() {
     local input="$1"
     local output="$2"
@@ -42,3 +52,4 @@ render_sp410_png() {
 render_sp410_png ti_srv_target_4x6_centered.pdf ti_srv_target_4x6_centered_203dpi.png
 render_sp410_png ti_srv_target_4x6_10mm_up.pdf ti_srv_target_4x6_10mm_up_203dpi.png
 render_sp410_png ti_srv_target_4x6_10mm_down.pdf ti_srv_target_4x6_10mm_down_203dpi.png
+render_sp410_png ti_srv_target_4x6_centered_edge_anchors.pdf ti_srv_target_4x6_centered_edge_anchors_203dpi.png

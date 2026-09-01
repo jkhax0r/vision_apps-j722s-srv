@@ -6,6 +6,8 @@ thermal label. Choose one placement and print four identical copies:
 - `ti_srv_target_4x6_centered.pdf`: vertically centered.
 - `ti_srv_target_4x6_10mm_up.pdf`: shifted 10 mm above center.
 - `ti_srv_target_4x6_10mm_down.pdf`: shifted 10 mm below center.
+- `ti_srv_target_4x6_centered_edge_anchors.pdf`: centered, with 0.25-inch
+  registration circles tangent to the top and bottom label edges.
 - `ti_srv_target_4x6.pdf`: compatibility alias of the 10 mm-up version.
 
 Fixed-canvas SP410 versions are also provided as 203-DPI PNG files:
@@ -13,6 +15,7 @@ Fixed-canvas SP410 versions are also provided as 203-DPI PNG files:
 - `ti_srv_target_4x6_centered_203dpi.png`
 - `ti_srv_target_4x6_10mm_up_203dpi.png`
 - `ti_srv_target_4x6_10mm_down_203dpi.png`
+- `ti_srv_target_4x6_centered_edge_anchors_203dpi.png`
 
 Use these PNGs if the PDF print application crops the white margins and
 recenters the black target. Each PNG contains the complete 4x6-inch label as
