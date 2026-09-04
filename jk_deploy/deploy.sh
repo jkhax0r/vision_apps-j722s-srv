@@ -10,7 +10,7 @@ APP="$OUT_DIR/vx_app_jk_srv_live.out"
 LIB="$OUT_DIR/libtivision_apps.so.11.0.0"
 LAUNCHER="$SCRIPT_DIR/run_jk_srv_live.sh"
 CAPTURE_LAUNCHER="$SCRIPT_DIR/capture_calibration_images.sh"
-DEFAULT_CALIBRATION_DIR="$SCRIPT_DIR/calibration/outputs/20260904T180803Z"
+DEFAULT_CALIBRATION_DIR="$SCRIPT_DIR/calibration/outputs/20260904T185944Z"
 CALIBRATION_DIR="${CALIBRATION_DIR-$DEFAULT_CALIBRATION_DIR}"
 REMOTE_STAGE="/tmp/jk-ti-srv-deploy-$$"
 

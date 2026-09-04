@@ -348,10 +348,6 @@ void svGenerate_3D_GPULUT(svGpuLutGen_t *sv, svLdcLut_t  *ldclut, tivxGenerateGp
     dtype distCenterX = ldcMod->distCenterX;
     dtype distCenterY = ldcMod->distCenterY;
     distCenter[0] = _ftof2(distCenterY, distCenterX);
-    dtype *lut = ldcMod->lut_u2d;
-    dtype distFocalLengthInv = ldcMod->distFocalLengthInv;
-    dtype lut_u2d_stepInv = ldcMod->lut_u2d_stepInv;
-
     LensDistortionCorrection *ldcMod1 = &ldclut->ldc[1];
     distCenterX = ldcMod1->distCenterX;
     distCenterY = ldcMod1->distCenterY;
@@ -475,6 +471,8 @@ void svGenerate_3D_GPULUT(svGpuLutGen_t *sv, svLdcLut_t  *ldclut, tivxGenerateGp
 
                 __float2_t point_u1;
                 int32_t loc;
+                LensDistortionCorrection *viewLdc =
+                    &ldclut->ldc[viewId1[quad]];
 
                 point_u1 = _amem8_f2_const(&pUndist[undist_cnt + 0]);
 
@@ -488,8 +486,10 @@ void svGenerate_3D_GPULUT(svGpuLutGen_t *sv, svLdcLut_t  *ldclut, tivxGenerateGp
                 point_t2 = pUndist[undist_cnt+1];
                 printf ("points are %f %f \n", point_t1,point_t2);
                 #endif
-                svFisheyeTransformUndistToDist(point_u1, &loc, sixteenf2, maxCmp, lut, distCenter[viewId1[quad]], distFocalLengthInv, lut_u2d_stepInv);
-                //Shashank: Beware of this bug, ldc can potentially be different for each camera too
+                svFisheyeTransformUndistToDist(point_u1, &loc, sixteenf2,
+                    maxCmp, viewLdc->lut_u2d, distCenter[viewId1[quad]],
+                    viewLdc->distFocalLengthInv,
+                    viewLdc->lut_u2d_stepInv);
                 _mem4(&pLut[undist_index + 0]) = loc; // Image 1 Y, X co-ordinates
 
                 undist_index += no_of_elems;
@@ -504,12 +504,17 @@ void svGenerate_3D_GPULUT(svGpuLutGen_t *sv, svLdcLut_t  *ldclut, tivxGenerateGp
 
                 __float2_t point_u2;
                 int32_t loc;
+                LensDistortionCorrection *viewLdc =
+                    &ldclut->ldc[viewId2[quad]];
 
                 point_u2 = _amem8_f2_const(&pUndist[undist_cnt + 2]);
 
                 undist_cnt += 4;
 
-                svFisheyeTransformUndistToDist(point_u2, &loc, sixteenf2, maxCmp, lut, distCenter[viewId2[quad]], distFocalLengthInv, lut_u2d_stepInv);
+                svFisheyeTransformUndistToDist(point_u2, &loc, sixteenf2,
+                    maxCmp, viewLdc->lut_u2d, distCenter[viewId2[quad]],
+                    viewLdc->distFocalLengthInv,
+                    viewLdc->lut_u2d_stepInv);
 
                 _mem4(&pLut[undist_index2 + 2]) = loc; // Image 2 Y, X co-ordinates
 
@@ -527,4 +532,3 @@ void svGenerate_3D_GPULUT(svGpuLutGen_t *sv, svLdcLut_t  *ldclut, tivxGenerateGp
         fclose(fp);
     #endif
 }
-

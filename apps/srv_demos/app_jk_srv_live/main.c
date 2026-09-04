@@ -11,6 +11,7 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <linux/videodev2.h>
+#include <math.h>
 #include <pthread.h>
 #include <signal.h>
 #include <stdint.h>
@@ -458,43 +459,54 @@ static vx_status fit_uyvy_from_uyvy(vx_image image,
     for (y = 0; y < IN_HEIGHT; y++)
     {
         uint8_t *dst_row = base + (y * addr.stride_y);
+        uint32_t output_y;
+        uint32_t source_y;
+        uint32_t x;
 
-        if ((camera->output_width != IN_WIDTH) ||
-            (camera->output_height != IN_HEIGHT))
+        if (y < camera->output_y)
         {
+            output_y = 0;
+        }
+        else if (y >= (camera->output_y + camera->output_height))
+        {
+            output_y = camera->output_height - 1u;
+        }
+        else
+        {
+            output_y = y - camera->output_y;
+        }
+        source_y = camera->source_y_for_line[output_y];
+
+        for (x = 0; x < camera->output_width; x += 2u)
+        {
+            uint32_t source_x = camera->source_x_for_pair[x / 2u];
+            const uint8_t *src_pair = src + (source_y * camera->stride) +
+                                      (source_x * 2u);
             uint32_t pair;
 
-            /* Limited-range UYVY black for aspect-ratio padding. */
-            for (pair = 0; pair < (IN_WIDTH / 2u); pair++)
+            memcpy(&pair, src_pair, sizeof(pair));
+
+            if (camera->mirror_x != 0)
             {
-                output_row[pair] = 0x10801080u;
+                pair = (pair & 0x00ff00ffu) |
+                       ((pair & 0x0000ff00u) << 16u) |
+                       ((pair & 0xff000000u) >> 16u);
             }
+            output_row[(camera->output_x + x) / 2u] = pair;
         }
 
-        if ((y >= camera->output_y) &&
-            (y < (camera->output_y + camera->output_height)))
+        /* Extend edge pixels into aspect-ratio padding. This retains the
+         * complete camera field of view without exposing black source rows
+         * when the calibrated projection reaches just beyond that view. */
+        for (x = 0; x < camera->output_x; x += 2u)
         {
-            uint32_t output_y = y - camera->output_y;
-            uint32_t source_y = camera->source_y_for_line[output_y];
-            uint32_t x;
-
-            for (x = 0; x < camera->output_width; x += 2u)
-            {
-                uint32_t source_x = camera->source_x_for_pair[x / 2u];
-                const uint8_t *src_pair = src + (source_y * camera->stride) +
-                                          (source_x * 2u);
-                uint32_t pair;
-
-                memcpy(&pair, src_pair, sizeof(pair));
-
-                if (camera->mirror_x != 0)
-                {
-                    pair = (pair & 0x00ff00ffu) |
-                           ((pair & 0x0000ff00u) << 16u) |
-                           ((pair & 0xff000000u) >> 16u);
-                }
-                output_row[(camera->output_x + x) / 2u] = pair;
-            }
+            output_row[x / 2u] = output_row[camera->output_x / 2u];
+        }
+        for (x = camera->output_x + camera->output_width;
+             x < IN_WIDTH; x += 2u)
+        {
+            output_row[x / 2u] =
+                output_row[(camera->output_x + camera->output_width - 2u) / 2u];
         }
 
         memcpy(dst_row, output_row, IN_WIDTH * 2u);
@@ -670,6 +682,99 @@ static void initialize_ldc(LensDistortionCorrection *ldc,
     memcpy(ldc->lut_u2d, lens->ldcLUT_U2D_table, sizeof(ldc->lut_u2d));
 }
 
+static float positive_env_float(const char *name)
+{
+    const char *text = getenv(name);
+    char *end = NULL;
+    float value;
+
+    if ((text == NULL) || (text[0] == '\0'))
+    {
+        return 0.0f;
+    }
+    errno = 0;
+    value = strtof(text, &end);
+    if ((errno != 0) || (end == text) || (*end != '\0') ||
+        !isfinite(value) || (value <= 0.0f))
+    {
+        fprintf(stderr, "jk_srv_live: ignoring invalid %s=%s\n", name, text);
+        return 0.0f;
+    }
+    return value;
+}
+
+static void set_equisolid_focal(LensDistortionCorrection *ldc, float focal)
+{
+    int32_t index;
+
+    ldc->distFocalLength = focal;
+    ldc->distFocalLengthInv = 1.0f / focal;
+    for (index = 0; index <= ldc->lut_u2d_indMax; index++)
+    {
+        float theta = (float)index * ldc->lut_u2d_step;
+        ldc->lut_u2d[index] = 2.0f * focal * sinf(theta * 0.5f);
+    }
+}
+
+static void rescale_bowl(float *bowl_xyz,
+                         const svACCalmatStruct_t *calmat,
+                         float requested_step,
+                         float requested_origin_x,
+                         float requested_origin_y)
+{
+    float camera_x[NUM_CAMERAS];
+    float camera_y[NUM_CAMERAS];
+    float origin_x = 0.0f;
+    float origin_y = 0.0f;
+    float generated_step;
+    float scale;
+    uint32_t camera;
+    uint32_t entry;
+
+    if (requested_step <= 0.0f)
+    {
+        return;
+    }
+    for (camera = 0; camera < NUM_CAMERAS; camera++)
+    {
+        const float *matrix = &calmat->scaled_outcalmat[camera * 12u];
+        camera_x[camera] = -(matrix[0] * matrix[9] +
+                             matrix[1] * matrix[10] +
+                             matrix[2] * matrix[11]);
+        camera_y[camera] = -(matrix[3] * matrix[9] +
+                             matrix[4] * matrix[10] +
+                             matrix[5] * matrix[11]);
+        origin_x += camera_x[camera] / (float)NUM_CAMERAS;
+        origin_y += camera_y[camera] / (float)NUM_CAMERAS;
+    }
+    generated_step = hypotf(camera_x[0] - camera_x[2],
+                            camera_y[0] - camera_y[2]) / 100.0f;
+    if (generated_step <= 0.0f)
+    {
+        return;
+    }
+    if (requested_origin_x <= 0.0f)
+    {
+        requested_origin_x = origin_x;
+    }
+    if (requested_origin_y <= 0.0f)
+    {
+        requested_origin_y = origin_y;
+    }
+    scale = requested_step / generated_step;
+    for (entry = 0; entry < (SV_XYZLUT3D_SIZE / 3u); entry++)
+    {
+        float *xyz = &bowl_xyz[entry * 3u];
+        xyz[0] = requested_origin_x + ((xyz[0] - origin_x) * scale);
+        xyz[1] = requested_origin_y + ((xyz[1] - origin_y) * scale);
+        xyz[2] *= scale;
+    }
+    printf("jk_srv_live: bowl scale %.3f -> %.3f mm/pixel (x%.3f), "
+           "origin %.1f,%.1f -> %.1f,%.1f\n",
+           generated_step, requested_step, scale, origin_x, origin_y,
+           requested_origin_x, requested_origin_y);
+}
+
 static vx_array create_calibrated_lut(vx_context context)
 {
     vx_array lut = NULL;
@@ -687,6 +792,11 @@ static vx_array create_calibrated_lut(vx_context context)
     uint32_t element;
     int32_t lut_items = 0;
     double start_seconds;
+    float gmsl_focal;
+    float analog_focal;
+    float requested_step;
+    float requested_origin_x;
+    float requested_origin_y;
 
     if ((read_calmat(&calmat_file) != 0) || (read_lens(&lens_file) != 0))
     {
@@ -730,6 +840,24 @@ static vx_array create_calibrated_lut(vx_context context)
     {
         initialize_ldc(&lens_luts.ldc[camera], &lens_file, camera);
     }
+    gmsl_focal = positive_env_float("APP_SRV_GMSL_FOCAL");
+    analog_focal = positive_env_float("APP_SRV_ANALOG_FOCAL");
+    if (gmsl_focal > 0.0f)
+    {
+        set_equisolid_focal(&lens_luts.ldc[0], gmsl_focal);
+        set_equisolid_focal(&lens_luts.ldc[3], gmsl_focal);
+    }
+    if (analog_focal > 0.0f)
+    {
+        set_equisolid_focal(&lens_luts.ldc[1], analog_focal);
+        set_equisolid_focal(&lens_luts.ldc[2], analog_focal);
+    }
+    if ((gmsl_focal > 0.0f) || (analog_focal > 0.0f))
+    {
+        printf("jk_srv_live: mixed equisolid focal lengths GMSL=%.1f analog=%.1f\n",
+               lens_luts.ldc[0].distFocalLength,
+               lens_luts.ldc[1].distFocalLength);
+    }
 
     bowl_xyz = (float *)calloc(SV_XYZLUT3D_SIZE, sizeof(*bowl_xyz));
     gpu_lut = (uint16_t *)calloc(SV_GPULUT_SIZE, sizeof(*gpu_lut));
@@ -751,6 +879,11 @@ static vx_array create_calibrated_lut(vx_context context)
     printf("jk_srv_live: generating TI calibrated bowl LUT on A53\n");
     svGenerate_3D_Bowl(&config, &offset,
                        scaled_calmat.scaled_outcalmat, bowl_xyz);
+    requested_step = positive_env_float("APP_SRV_MM_PER_LUT_PIXEL");
+    requested_origin_x = positive_env_float("APP_SRV_ORIGIN_X");
+    requested_origin_y = positive_env_float("APP_SRV_ORIGIN_Y");
+    rescale_bowl(bowl_xyz, &scaled_calmat, requested_step,
+                 requested_origin_x, requested_origin_y);
     svGenerate_3D_GPULUT(&config, &lens_luts, &generate_params,
                         &scaled_calmat, bowl_xyz, gpu_lut, &lut_items);
     if ((lut_items <= 0) || ((uint32_t)lut_items > SV_GPULUT_SIZE))

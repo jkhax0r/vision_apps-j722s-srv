@@ -141,7 +141,9 @@ generated from older YUV orientations must not be reused.
 
 ## Current Calibration Output
 
-The active output is `outputs/20260904T180803Z/`. It was generated from the
-post-swap capture in `inputs_20260904T175409Z_full_fov` and follows the current
-front/right/back/left order. The older `20260901T192501Z` output remains
-archived for comparison and must not be used with the current mounting.
+The active output is `outputs/20260904T185944Z/`. It was fitted from the
+cleared post-swap frames in `inputs_20260904T175409Z_full_fov`, using the blue
+tape as a straight-line lens check and the target corners listed in
+`mixed_camera_points_20260904.json`. It follows the current
+front/right/back/left order. The older `20260901T192501Z` and
+`20260904T180803Z` outputs remain archived for comparison.

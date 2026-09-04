@@ -22,9 +22,9 @@ does not commit those generated binaries.
 ```text
 4 V4L2 UYVY capture nodes
   -> mmap dequeue
-  -> full-frame fit / analog X mirror / TechNexion 180-degree rotation
+  -> full-frame fit / edge extension / analog X mirror / TechNexion 180-degree rotation
   -> OpenVX object array in front/right/back/left order
-  -> one-time TI bowl/LDC LUT generation from CALMAT.BIN and LENS.BIN
+  -> one-time TI bowl/LDC LUT generation with per-camera-type intrinsics
   -> tivxGlSrvNode calibrated warp/blend on the GPU
   -> RGBX render target
   -> fullscreen xdg-shell Wayland surface
@@ -93,10 +93,14 @@ CAM_WIDTH=1280 CAM_HEIGHT=720 CAM_FPS=60 /opt/jk-ti-srv/run_jk_srv_live.sh
 APP_EGL_WIDTH=1280 APP_EGL_HEIGHT=800 /opt/jk-ti-srv/run_jk_srv_live.sh
 /opt/jk-ti-srv/run_jk_srv_live.sh 300 /tmp/ti-srv-300-frames.raw
 APP_SRV_USE_CALIBRATION=0 /opt/jk-ti-srv/run_jk_srv_live.sh
+APP_SRV_MM_PER_LUT_PIXEL=1.2 /opt/jk-ti-srv/run_jk_srv_live.sh
 ```
 
 Calibrated stitching is the default. Set `APP_SRV_USE_CALIBRATION=0` to use
-the identity four-view diagnostic.
+the identity four-view diagnostic. The mixed-camera calibration defaults are
+`APP_SRV_GMSL_FOCAL=343`, `APP_SRV_ANALOG_FOCAL=273`,
+`APP_SRV_MM_PER_LUT_PIXEL=1.08`, `APP_SRV_ORIGIN_X=546.1`, and
+`APP_SRV_ORIGIN_Y=590.0`.
 
 Press `Ctrl-C` to stop and restore Ahsoka. A reboot also returns to the stock
 boot application.
@@ -108,9 +112,9 @@ boot application.
   calibration capture; the production 30-fps graph should perform these same
   resize/pad transforms with VPAC/MSC.
 - No cross-camera timestamp synchronization is performed.
-- The active calibration uses one shared lens model for unlike analog and
-  TechNexion cameras; independent intrinsics are still required for final
-  seam quality.
+- The active calibration supports separate equisolid focal lengths for the
+  analog and TechNexion camera pairs. A full production calibration still
+  needs independent checkerboard intrinsics for every physical camera.
 - The GMSL2 and analog inputs differ in resolution, timing, lenses, and image
   processing.
 - A production implementation should import DMA-BUF/OpenVX buffers and move
