@@ -703,6 +703,13 @@ static float positive_env_float(const char *name)
     return value;
 }
 
+static int env_flag(const char *name)
+{
+    const char *text = getenv(name);
+
+    return (text != NULL) && (text[0] != '\0') && (strcmp(text, "0") != 0);
+}
+
 static void set_equisolid_focal(LensDistortionCorrection *ldc, float focal)
 {
     int32_t index;
@@ -718,20 +725,24 @@ static void set_equisolid_focal(LensDistortionCorrection *ldc, float focal)
 
 static void rescale_bowl(float *bowl_xyz,
                          const svACCalmatStruct_t *calmat,
-                         float requested_step,
+                         float requested_step_x,
+                         float requested_step_y,
                          float requested_origin_x,
-                         float requested_origin_y)
+                         float requested_origin_y,
+                         int flat_ground)
 {
     float camera_x[NUM_CAMERAS];
     float camera_y[NUM_CAMERAS];
     float origin_x = 0.0f;
     float origin_y = 0.0f;
     float generated_step;
-    float scale;
+    float scale_x;
+    float scale_y;
+    float scale_z;
     uint32_t camera;
     uint32_t entry;
 
-    if (requested_step <= 0.0f)
+    if ((requested_step_x <= 0.0f) || (requested_step_y <= 0.0f))
     {
         return;
     }
@@ -761,18 +772,22 @@ static void rescale_bowl(float *bowl_xyz,
     {
         requested_origin_y = origin_y;
     }
-    scale = requested_step / generated_step;
+    scale_x = requested_step_x / generated_step;
+    scale_y = requested_step_y / generated_step;
+    scale_z = 0.5f * (scale_x + scale_y);
     for (entry = 0; entry < (SV_XYZLUT3D_SIZE / 3u); entry++)
     {
         float *xyz = &bowl_xyz[entry * 3u];
-        xyz[0] = requested_origin_x + ((xyz[0] - origin_x) * scale);
-        xyz[1] = requested_origin_y + ((xyz[1] - origin_y) * scale);
-        xyz[2] *= scale;
+        xyz[0] = requested_origin_x + ((xyz[0] - origin_x) * scale_x);
+        xyz[1] = requested_origin_y + ((xyz[1] - origin_y) * scale_y);
+        xyz[2] = flat_ground ? 0.0f : (xyz[2] * scale_z);
     }
-    printf("jk_srv_live: bowl scale %.3f -> %.3f mm/pixel (x%.3f), "
-           "origin %.1f,%.1f -> %.1f,%.1f\n",
-           generated_step, requested_step, scale, origin_x, origin_y,
-           requested_origin_x, requested_origin_y);
+    printf("jk_srv_live: bowl scale %.3f -> %.3f x %.3f mm/pixel "
+           "(x%.3f, x%.3f), origin %.1f,%.1f -> %.1f,%.1f, %s\n",
+           generated_step, requested_step_x, requested_step_y,
+           scale_x, scale_y, origin_x, origin_y,
+           requested_origin_x, requested_origin_y,
+           flat_ground ? "flat ground" : "raised bowl");
 }
 
 static vx_array create_calibrated_lut(vx_context context)
@@ -795,8 +810,11 @@ static vx_array create_calibrated_lut(vx_context context)
     float gmsl_focal;
     float analog_focal;
     float requested_step;
+    float requested_step_x;
+    float requested_step_y;
     float requested_origin_x;
     float requested_origin_y;
+    int flat_ground;
 
     if ((read_calmat(&calmat_file) != 0) || (read_lens(&lens_file) != 0))
     {
@@ -880,10 +898,22 @@ static vx_array create_calibrated_lut(vx_context context)
     svGenerate_3D_Bowl(&config, &offset,
                        scaled_calmat.scaled_outcalmat, bowl_xyz);
     requested_step = positive_env_float("APP_SRV_MM_PER_LUT_PIXEL");
+    requested_step_x = positive_env_float("APP_SRV_MM_PER_LUT_PIXEL_X");
+    requested_step_y = positive_env_float("APP_SRV_MM_PER_LUT_PIXEL_Y");
+    if (requested_step_x <= 0.0f)
+    {
+        requested_step_x = requested_step;
+    }
+    if (requested_step_y <= 0.0f)
+    {
+        requested_step_y = requested_step;
+    }
     requested_origin_x = positive_env_float("APP_SRV_ORIGIN_X");
     requested_origin_y = positive_env_float("APP_SRV_ORIGIN_Y");
-    rescale_bowl(bowl_xyz, &scaled_calmat, requested_step,
-                 requested_origin_x, requested_origin_y);
+    flat_ground = env_flag("APP_SRV_FLAT_GROUND");
+    rescale_bowl(bowl_xyz, &scaled_calmat,
+                 requested_step_x, requested_step_y,
+                 requested_origin_x, requested_origin_y, flat_ground);
     svGenerate_3D_GPULUT(&config, &lens_luts, &generate_params,
                         &scaled_calmat, bowl_xyz, gpu_lut, &lut_items);
     if ((lut_items <= 0) || ((uint32_t)lut_items > SV_GPULUT_SIZE))

@@ -87,7 +87,7 @@
 #define SRV_CALMAT_BIN_FILE "CALMAT.BIN"
 #endif
 
-#define OVERLAP_REGION_ANGULAR_WIDTH_DEGREES 10.0f
+#define DEFAULT_OVERLAP_REGION_ANGULAR_WIDTH_DEGREES 10.0f
 
 int32_t srv_offset_x_left = -400;
 int32_t srv_offset_x_right = 400;
@@ -108,6 +108,31 @@ glm::mat4 mP[NUM_CAMERAS]; //[P] = [K][RT]
 glm::vec3 vTc[NUM_CAMERAS];
 glm::vec3 vTw[NUM_CAMERAS];
 glm::mat4 mRw[NUM_CAMERAS];
+
+static float get_blend_width_degrees(void)
+{
+    static float width = -1.0f;
+
+    if (width < 0.0f)
+    {
+        const char *text = getenv("APP_SRV_BLEND_DEGREES");
+        char *end = NULL;
+        float requested = DEFAULT_OVERLAP_REGION_ANGULAR_WIDTH_DEGREES;
+
+        if ((text != NULL) && (text[0] != '\0'))
+        {
+            requested = strtof(text, &end);
+            if ((end == text) || (*end != '\0') || !isfinite(requested) ||
+                (requested < 0.0f) || (requested > 45.0f))
+            {
+                requested = DEFAULT_OVERLAP_REGION_ANGULAR_WIDTH_DEGREES;
+            }
+        }
+        width = requested;
+        printf("SRV: blend half-width %.1f degrees\n", width);
+    }
+    return width;
+}
 glm::mat4 mRTw[NUM_CAMERAS];
 /*===============================================================================
 *
@@ -236,9 +261,11 @@ void lut_add_entry(srv_lut_t *entry,
     {
 	angle_offset_degrees -= 360.0;
     }
-    if(fabsf(angle_offset_degrees) < OVERLAP_REGION_ANGULAR_WIDTH_DEGREES)
+    const float blend_width_degrees = get_blend_width_degrees();
+    if(blend_width_degrees > 0.0f &&
+            fabsf(angle_offset_degrees) < blend_width_degrees)
     {
-        entry->blend1 = 128 - int(127.0 * angle_offset_degrees/OVERLAP_REGION_ANGULAR_WIDTH_DEGREES);
+        entry->blend1 = 128 - int(127.0 * angle_offset_degrees/blend_width_degrees);
 	entry->blend2 = 255 - entry->blend1;
     }
     else if((angle_offset_degrees >= 0.0))
@@ -288,9 +315,11 @@ void blend_lut_add_entry(srv_blend_lut_t *entry,
     {
 	angle_offset_degrees -= 360.0;
     }
-    if(fabsf(angle_offset_degrees) < OVERLAP_REGION_ANGULAR_WIDTH_DEGREES)
+    const float blend_width_degrees = get_blend_width_degrees();
+    if(blend_width_degrees > 0.0f &&
+            fabsf(angle_offset_degrees) < blend_width_degrees)
     {
-        entry->blend1 = 128 - int(127.0 * angle_offset_degrees/OVERLAP_REGION_ANGULAR_WIDTH_DEGREES);
+        entry->blend1 = 128 - int(127.0 * angle_offset_degrees/blend_width_degrees);
 	entry->blend2 = 255 - entry->blend1;
     }
     else if((angle_offset_degrees >= 0.0))

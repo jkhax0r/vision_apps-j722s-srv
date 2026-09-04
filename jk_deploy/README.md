@@ -94,13 +94,17 @@ APP_EGL_WIDTH=1280 APP_EGL_HEIGHT=800 /opt/jk-ti-srv/run_jk_srv_live.sh
 /opt/jk-ti-srv/run_jk_srv_live.sh 300 /tmp/ti-srv-300-frames.raw
 APP_SRV_USE_CALIBRATION=0 /opt/jk-ti-srv/run_jk_srv_live.sh
 APP_SRV_MM_PER_LUT_PIXEL=1.2 /opt/jk-ti-srv/run_jk_srv_live.sh
+APP_SRV_BLEND_DEGREES=5 /opt/jk-ti-srv/run_jk_srv_live.sh
 ```
 
 Calibrated stitching is the default. Set `APP_SRV_USE_CALIBRATION=0` to use
 the identity four-view diagnostic. The mixed-camera calibration defaults are
 `APP_SRV_GMSL_FOCAL=343`, `APP_SRV_ANALOG_FOCAL=273`,
-`APP_SRV_MM_PER_LUT_PIXEL=1.08`, `APP_SRV_ORIGIN_X=546.1`, and
-`APP_SRV_ORIGIN_Y=590.0`.
+`APP_SRV_MM_PER_LUT_PIXEL=1.17`, `APP_SRV_ORIGIN_X=546.1`,
+`APP_SRV_ORIGIN_Y=622.3`, and a flat ground plane. This preserves the measured
+43-by-49-inch target rectangle. `APP_SRV_BLEND_DEGREES` is the half-width of
+each camera blend seam; smaller values sharpen double images but expose more
+of the cameras' color and exposure mismatch.
 
 Press `Ctrl-C` to stop and restore Ahsoka. A reboot also returns to the stock
 boot application.

@@ -126,6 +126,8 @@ static bool lut_updated = false;
 static bool lut_external = true;
 static void *lut_staging;
 
+/* The 4-pixel LUT grid spans x=-540..536 and y=-536..540. Center it and
+ * overscan by one grid step so rasterization cannot leave an invalid edge. */
 //Shaders for surround view
 static const char srv_vert_shader_lut[] =
 " attribute vec3 aVertexPosition;\n "
@@ -151,7 +153,7 @@ static const char srv_vert_shader_lut[] =
 " uniform float uTextureY;\n "
 #endif
 " void main(void) {\n "
-"     gl_Position = vec4(aVertexPosition.x/540.0, aVertexPosition.y/540.0, 0.0, 1.0);\n "
+"     gl_Position = vec4((aVertexPosition.x + 2.0)/536.0, (aVertexPosition.y - 2.0)/536.0, 0.0, 1.0);\n "
 "     outFloatChannelX = aVertexPosition.x/(uRangeX * 2.0);\n"
 "     outFloatChannelY = aVertexPosition.y/(uRangeY * 2.0);\n"
 "     outFloatChannelZ = aVertexPosition.z/450.0f;\n"
@@ -246,7 +248,7 @@ static const char srv_vert_shader[] =
 #endif
 
 " void main(void) {\n "
-"     gl_Position = vec4(aVertexPosition.x/540.0, aVertexPosition.y/540.0, 0.0, 1.0);\n "
+"     gl_Position = vec4((aVertexPosition.x + 2.0)/536.0, (aVertexPosition.y - 2.0)/536.0, 0.0, 1.0);\n "
 "     outNormTexture.x = aTextureCoord1.t/uTextureX;\n"
 "     outNormTexture.y = aTextureCoord1.s/uTextureY;\n"
 "     outNormTexture1.x = aTextureCoord2.t/uTextureX;\n"
