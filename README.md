@@ -29,16 +29,18 @@ mode remains available as a diagnostic fallback.
 
 | Position | Input |
 | --- | --- |
-| Front | Analog0 |
-| Right | GMSL1 |
+| Front | GMSL1 |
+| Right | Analog0 |
 | Back | Analog1 |
 | Left | GMSL0 |
 
 Output is a 1280x800 fullscreen Wayland surface. The calibrated mixed-camera
 pipeline currently sustains about 16 fps; host-side resize/rotation copies are
 the limiter, while the TI GPU SRV graph takes about 9.5 ms per frame. The
-current shared lens model is sufficient for bring-up but needs per-camera
-intrinsics and refined placement calibration for production-quality seams.
+The prior calibration predates the 2026-09-04 front/right camera swap, so the
+launcher currently defaults to the identity four-view diagnostic. New
+calibration images and output are required before calibrated stitching can be
+enabled again.
 
 ## Build
 

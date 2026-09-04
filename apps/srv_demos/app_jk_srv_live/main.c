@@ -89,15 +89,15 @@ typedef struct {
 } Camera;
 
 static const char *default_devices[NUM_CAMERAS] = {
-    "/usr/local/Ahsoka/devices/video/analog0",
     "/usr/local/Ahsoka/devices/video/gmsl1",
+    "/usr/local/Ahsoka/devices/video/analog0",
     "/usr/local/Ahsoka/devices/video/analog1",
     "/usr/local/Ahsoka/devices/video/gmsl0",
 };
 
 static const char *calibration_camera_names[NUM_CAMERAS] = {
-    "camera0_front_analog0_640x480_nv12.yuv",
-    "camera1_right_gmsl1_640x480_nv12.yuv",
+    "camera0_front_gmsl1_640x480_nv12.yuv",
+    "camera1_right_analog0_640x480_nv12.yuv",
     "camera2_back_analog1_640x480_nv12.yuv",
     "camera3_left_gmsl0_640x480_nv12.yuv",
 };
@@ -1089,7 +1089,7 @@ int main(int argc, char *argv[])
     double convert_seconds = 0.0;
     double graph_seconds = 0.0;
     int use_calibration =
-        ((use_calibration_text == NULL) ||
+        ((use_calibration_text != NULL) &&
          (strcmp(use_calibration_text, "0") != 0));
 
     setvbuf(stdout, NULL, _IOLBF, 0);

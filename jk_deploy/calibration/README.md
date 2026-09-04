@@ -119,16 +119,17 @@ capture connector only; they do not imply a physical direction.
 
 ## Current Tripod Camera Identities
 
-The mounted camera order was verified with a physical marker on 2026-09-01:
+The front and right cameras were physically swapped on 2026-09-04. The current
+clockwise mounting is:
 
 | Direction | Capture file prefix | Stable input |
 | --- | --- | --- |
-| Front | `camera2_analog0` | `/usr/local/Ahsoka/devices/video/analog0` |
-| Right | `camera1_gmsl1` | `/usr/local/Ahsoka/devices/video/gmsl1` |
-| Rear | `camera3_analog1` | `/usr/local/Ahsoka/devices/video/analog1` |
-| Left | `camera0_gmsl0` | `/usr/local/Ahsoka/devices/video/gmsl0` |
+| Front | `camera0_front_gmsl1` | `/usr/local/Ahsoka/devices/video/gmsl1` |
+| Right | `camera1_right_analog0` | `/usr/local/Ahsoka/devices/video/analog0` |
+| Rear | `camera2_back_analog1` | `/usr/local/Ahsoka/devices/video/analog1` |
+| Left | `camera3_left_gmsl0` | `/usr/local/Ahsoka/devices/video/gmsl0` |
 
-Viewed from above, the clockwise order is `analog0`, `gmsl1`, `analog1`,
+Viewed from above, the clockwise order is `gmsl1`, `analog0`, `analog1`,
 `gmsl0`. Re-verify this table after moving cameras between physical mounts or
 rewiring camera inputs.
 
@@ -140,7 +141,7 @@ generated from older YUV orientations must not be reused.
 
 ## Current Calibration Output
 
-The output currently used by the live TI GPU stitch is versioned under
-`outputs/20260901T192501Z/`. It contains every file emitted by the calibration
-tool. The normal deploy script installs the complete set for inspection and
-copies `CALMAT.BIN`, `LENS.BIN`, and `CHARTPOS.BIN` into the runtime data path.
+The output under `outputs/20260901T192501Z/` was generated for the old layout
+with analog0 at front and GMSL1 at right. It is retained for comparison but is
+invalid after the 2026-09-04 swap. Capture and solve a new set before enabling
+`APP_SRV_USE_CALIBRATION=1`.

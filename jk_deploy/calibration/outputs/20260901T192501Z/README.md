@@ -1,4 +1,8 @@
-# Calibration Output 20260901T192501Z
+# Archived Calibration Output 20260901T192501Z
+
+This output is incompatible with the current mounting after analog0 and GMSL1
+were physically swapped on 2026-09-04. It records the old layout and must not
+be enabled for the current camera positions.
 
 Generated with TI's Windows 3D surround-view calibration tool from the
 full-field-of-view `640x480` NV12 captures in:

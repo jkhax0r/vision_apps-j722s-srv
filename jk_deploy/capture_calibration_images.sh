@@ -70,8 +70,8 @@ done
     echo "camera_count=4"
     echo
     echo "Capture slots and current compositor positions:"
-    echo "camera0: front, /usr/local/Ahsoka/devices/video/analog0"
-    echo "camera1: right, /usr/local/Ahsoka/devices/video/gmsl1"
+    echo "camera0: front, /usr/local/Ahsoka/devices/video/gmsl1"
+    echo "camera1: right, /usr/local/Ahsoka/devices/video/analog0"
     echo "camera2: back, /usr/local/Ahsoka/devices/video/analog1"
     echo "camera3: left, /usr/local/Ahsoka/devices/video/gmsl0"
     echo "Analog frames include the same field reweave used by the live SRV app."
