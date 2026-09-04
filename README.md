@@ -37,10 +37,9 @@ mode remains available as a diagnostic fallback.
 Output is a 1280x800 fullscreen Wayland surface. The calibrated mixed-camera
 pipeline currently sustains about 16 fps; host-side resize/rotation copies are
 the limiter, while the TI GPU SRV graph takes about 9.5 ms per frame. The
-The prior calibration predates the 2026-09-04 front/right camera swap, so the
-launcher currently defaults to the identity four-view diagnostic. New
-calibration images and output are required before calibrated stitching can be
-enabled again.
+The active calibration was generated after the 2026-09-04 front/right camera
+swap. It is a bring-up solve using one shared lens model for the unlike camera
+types; per-camera intrinsics are still required for production-quality seams.
 
 ## Build
 

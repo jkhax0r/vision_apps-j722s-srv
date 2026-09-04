@@ -1089,7 +1089,7 @@ int main(int argc, char *argv[])
     double convert_seconds = 0.0;
     double graph_seconds = 0.0;
     int use_calibration =
-        ((use_calibration_text != NULL) &&
+        ((use_calibration_text == NULL) ||
          (strcmp(use_calibration_text, "0") != 0));
 
     setvbuf(stdout, NULL, _IOLBF, 0);

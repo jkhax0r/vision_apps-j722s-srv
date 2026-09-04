@@ -67,8 +67,8 @@ TARGET=root@TARGET_IP SSH_ARGS='-i ~/.ssh/target_key' ./jk_deploy/deploy.sh
 The deployer refuses to replace files while `vx_app_jk_srv_live.out` is
 running. It saves previous files under `/root/jk-ti-srv-backups/TIMESTAMP/`,
 then installs the application, matching `libtivision_apps`, and launcher.
-Calibration is installed only when an explicit, valid output directory is
-provided:
+The current post-swap calibration is installed by default. Override it with a
+different valid output directory as follows:
 
 ```sh
 TARGET=root@TARGET_IP \
@@ -76,8 +76,9 @@ CALIBRATION_DIR="$PWD/jk_deploy/calibration/outputs/NEW_OUTPUT" \
     ./jk_deploy/deploy.sh
 ```
 
-The archived `20260901T192501Z` output is for the pre-swap camera layout and
-must not be deployed for the current mounting.
+Set `CALIBRATION_DIR=` to skip calibration installation. The archived
+`20260901T192501Z` output is for the pre-swap layout and must not be deployed
+for the current mounting.
 
 ## Run
 
@@ -94,9 +95,8 @@ APP_EGL_WIDTH=1280 APP_EGL_HEIGHT=800 /opt/jk-ti-srv/run_jk_srv_live.sh
 APP_SRV_USE_CALIBRATION=0 /opt/jk-ti-srv/run_jk_srv_live.sh
 ```
 
-Identity four-view mode is the default until the swapped front/right cameras
-have been recalibrated. Set `APP_SRV_USE_CALIBRATION=1` only after deploying
-the replacement output.
+Calibrated stitching is the default. Set `APP_SRV_USE_CALIBRATION=0` to use
+the identity four-view diagnostic.
 
 Press `Ctrl-C` to stop and restore Ahsoka. A reboot also returns to the stock
 boot application.
@@ -108,8 +108,9 @@ boot application.
   calibration capture; the production 30-fps graph should perform these same
   resize/pad transforms with VPAC/MSC.
 - No cross-camera timestamp synchronization is performed.
-- The packaged calibration output predates the front/right camera swap and is
-  archived rather than installed by default.
+- The active calibration uses one shared lens model for unlike analog and
+  TechNexion cameras; independent intrinsics are still required for final
+  seam quality.
 - The GMSL2 and analog inputs differ in resolution, timing, lenses, and image
   processing.
 - A production implementation should import DMA-BUF/OpenVX buffers and move

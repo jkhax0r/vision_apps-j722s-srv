@@ -141,7 +141,7 @@ generated from older YUV orientations must not be reused.
 
 ## Current Calibration Output
 
-The output under `outputs/20260901T192501Z/` was generated for the old layout
-with analog0 at front and GMSL1 at right. It is retained for comparison but is
-invalid after the 2026-09-04 swap. Capture and solve a new set before enabling
-`APP_SRV_USE_CALIBRATION=1`.
+The active output is `outputs/20260904T180803Z/`. It was generated from the
+post-swap capture in `inputs_20260904T175409Z_full_fov` and follows the current
+front/right/back/left order. The older `20260901T192501Z` output remains
+archived for comparison and must not be used with the current mounting.

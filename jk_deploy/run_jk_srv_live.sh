@@ -9,9 +9,7 @@ export APP_EGL_WAYLAND=1
 export APP_EGL_WIDTH="${APP_EGL_WIDTH:-1280}"
 export APP_EGL_HEIGHT="${APP_EGL_HEIGHT:-800}"
 export APP_EGL_APP_ID="${APP_EGL_APP_ID:-com.enovation.Installer}"
-# The front/right cameras were physically swapped after the packaged
-# calibration was generated. Use identity mode until a new calibration exists.
-export APP_SRV_USE_CALIBRATION="${APP_SRV_USE_CALIBRATION:-0}"
+export APP_SRV_USE_CALIBRATION="${APP_SRV_USE_CALIBRATION:-1}"
 if [ "$APP_SRV_USE_CALIBRATION" = 0 ]; then
     export APP_SRV_QUADRANT_MODE=1
 else
