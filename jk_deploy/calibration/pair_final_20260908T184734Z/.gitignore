@@ -1,0 +1,4 @@
+captures/*
+!captures/*.corners.npz
+*.png
+__pycache__/

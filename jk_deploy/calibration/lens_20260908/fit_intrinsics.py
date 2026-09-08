@@ -134,29 +134,32 @@ def detect(path):
     print(path.parent.name, path.stem, len(measured), 'corners', flush=True)
 
 
+def square_lattice(grid, points, k=K0, d=D0):
+    # Repeating patterns also admit an oblique integer basis (e.g. a
+    # diagonal plus a row). Reduce it to the actual square-cell axes.
+    normalized = cv2.fisheye.undistortPoints(points.reshape(-1, 1, 2), k, d)
+    h, _ = cv2.findHomography(grid, normalized)
+    choices = []
+    for entries in product(range(-2, 3), repeat=4):
+        basis = np.array(entries).reshape(2, 2)
+        if round(np.linalg.det(basis)) != 1:
+            continue
+        a, b = (h[:, :2]@basis).T
+        na, nb = np.linalg.norm(a), np.linalg.norm(b)
+        score = abs(a@b/(na*nb)) + abs(np.log(na/nb))
+        score += 1e-7*np.linalg.norm(basis-np.eye(2))
+        choices.append((score, basis))
+    score, basis = min(choices, key=lambda c: c[0])
+    if score > .2:
+        raise RuntimeError('Non-square or inconsistent detected lattice')
+    return grid@np.linalg.inv(basis).T, basis, score
+
+
 def load_views(camera):
     views = []
     for path in sorted(ROOT.glob(f'pose_*/gmsl{camera}.corners.npz')):
         data = np.load(path)
-        grid = data['grid']
-        # Repeating patterns also admit an oblique integer basis (e.g. a
-        # diagonal plus a row). Reduce it to the actual square-cell axes.
-        normalized = cv2.fisheye.undistortPoints(data['points'].reshape(-1, 1, 2), K0, D0)
-        h, _ = cv2.findHomography(grid, normalized)
-        choices = []
-        for entries in product(range(-2, 3), repeat=4):
-            basis = np.array(entries).reshape(2, 2)
-            if round(np.linalg.det(basis)) != 1:
-                continue
-            a, b = (h[:, :2]@basis).T
-            na, nb = np.linalg.norm(a), np.linalg.norm(b)
-            score = abs(a@b/(na*nb)) + abs(np.log(na/nb))
-            score += 1e-7*np.linalg.norm(basis-np.eye(2))
-            choices.append((score, basis))
-        score, basis = min(choices, key=lambda c: c[0])
-        if score > .2:
-            raise RuntimeError(f"Non-square or inconsistent detected lattice: {path}")
-        grid = grid@np.linalg.inv(basis).T
+        grid, basis, score = square_lattice(data['grid'], data['points'])
         grid = (grid-grid.mean(0))*SQUARE_MM
         objects = np.c_[grid, np.zeros(len(grid))].reshape(-1, 1, 3)
         views.append({'pose': path.parent.name, 'objects': objects,
