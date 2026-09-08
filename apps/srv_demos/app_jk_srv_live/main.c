@@ -6,6 +6,8 @@
  * tivxGlSrvNode(), presents the result, and optionally writes the final RGBX
  * output frame to disk. The fit preserves the GMSL camera aspect ratio; the
  * analog 720x480 samples are normalized to their intended 4:3 display shape.
+ * The full-resolution pair mode copies native GMSL frames without resizing
+ * or rotating; its GPU lookup table supplies the camera orientation.
  */
 
 #include <errno.h>
@@ -37,8 +39,8 @@
 #include "core_generate_3dbowl.h"
 #include "core_generate_gpulut.h"
 
-#define IN_WIDTH      (640u)
-#define IN_HEIGHT     (480u)
+#define MAX_IN_WIDTH  (1920u)
+#define MAX_IN_HEIGHT (1200u)
 #define OUT_WIDTH     (1280u)
 #define OUT_HEIGHT    (800u)
 #define NUM_CAMERAS   (4u)
@@ -57,6 +59,9 @@
 extern void tivxPlatformResetObjDescTableInfo(void);
 
 static volatile sig_atomic_t stop_requested = 0;
+static uint32_t input_width = 640u;
+static uint32_t input_height = 480u;
+static int full_resolution_pair = 0;
 
 static void request_stop(int signal_number)
 {
@@ -82,8 +87,8 @@ typedef struct {
     uint32_t output_y;
     uint32_t output_width;
     uint32_t output_height;
-    uint32_t source_x_for_pair[IN_WIDTH / 2u];
-    uint32_t source_y_for_line[IN_HEIGHT];
+    uint32_t source_x_for_pair[MAX_IN_WIDTH / 2u];
+    uint32_t source_y_for_line[MAX_IN_HEIGHT];
     int stacked_fields;
     int mirror_x;
     int flip_y;
@@ -216,29 +221,40 @@ static int camera_open(Camera *camera, const char *path)
     camera->stacked_fields = strstr(path, "analog") != NULL;
     camera->mirror_x = 1;
     camera->flip_y = camera->stacked_fields == 0;
+    if (full_resolution_pair)
+    {
+        if (camera->stacked_fields || camera->width != input_width ||
+            camera->height != input_height || camera->stride < input_width * 2u)
+        {
+            fprintf(stderr, "%s: full-resolution pair requires 1920x1200 GMSL UYVY\n", path);
+            return -1;
+        }
+        camera->mirror_x = 0;
+        camera->flip_y = 0;
+    }
     if (camera->stacked_fields != 0)
     {
         /* 720x480 NTSC samples describe a 4:3 image with non-square pixels. */
-        camera->output_width = IN_WIDTH;
-        camera->output_height = IN_HEIGHT;
+        camera->output_width = input_width;
+        camera->output_height = input_height;
     }
-    else if (((uint64_t)camera->width * IN_HEIGHT) >
-             ((uint64_t)camera->height * IN_WIDTH))
+    else if (((uint64_t)camera->width * input_height) >
+             ((uint64_t)camera->height * input_width))
     {
-        camera->output_width = IN_WIDTH;
+        camera->output_width = input_width;
         camera->output_height =
-            (uint32_t)(((uint64_t)camera->height * IN_WIDTH) / camera->width);
+            (uint32_t)(((uint64_t)camera->height * input_width) / camera->width);
         camera->output_height &= ~1u;
     }
     else
     {
-        camera->output_height = IN_HEIGHT;
+        camera->output_height = input_height;
         camera->output_width =
-            (uint32_t)(((uint64_t)camera->width * IN_HEIGHT) / camera->height);
+            (uint32_t)(((uint64_t)camera->width * input_height) / camera->height);
         camera->output_width &= ~1u;
     }
-    camera->output_x = ((IN_WIDTH - camera->output_width) / 2u) & ~1u;
-    camera->output_y = (IN_HEIGHT - camera->output_height) / 2u;
+    camera->output_x = ((input_width - camera->output_width) / 2u) & ~1u;
+    camera->output_y = (input_height - camera->output_height) / 2u;
     printf("%s: full-frame fit=%ux%u offset=%u,%u mirror-x=%s flip-y=%s\n", path,
            camera->output_width, camera->output_height,
            camera->output_x, camera->output_y,
@@ -435,13 +451,13 @@ static vx_status fit_uyvy_from_uyvy(vx_image image,
     vx_imagepatch_addressing_t addr;
     vx_map_id map_id;
     uint8_t *base = NULL;
-    uint32_t output_row[IN_WIDTH / 2u];
+    uint32_t output_row[MAX_IN_WIDTH / 2u];
     uint32_t y;
 
     rect.start_x = 0;
     rect.start_y = 0;
-    rect.end_x = IN_WIDTH;
-    rect.end_y = IN_HEIGHT;
+    rect.end_x = input_width;
+    rect.end_y = input_height;
 
     status = vxMapImagePatch(image, &rect, 0, &map_id, &addr, (void **)&base,
                              VX_WRITE_ONLY, VX_MEMORY_TYPE_HOST, VX_NOGAP_X);
@@ -456,7 +472,17 @@ static vx_status fit_uyvy_from_uyvy(vx_image image,
         return VX_ERROR_NOT_SUPPORTED;
     }
 
-    for (y = 0; y < IN_HEIGHT; y++)
+    if (full_resolution_pair)
+    {
+        /* Sequential copies avoid slow scattered reads from capture memory.
+         * Native orientation is preserved for the full-resolution GPU LUT. */
+        for (y = 0; y < input_height; y++)
+            memcpy(base + y * addr.stride_y, src + y * camera->stride,
+                   input_width * 2u);
+        return vxUnmapImagePatch(image, map_id);
+    }
+
+    for (y = 0; y < input_height; y++)
     {
         uint8_t *dst_row = base + (y * addr.stride_y);
         uint32_t output_y;
@@ -503,13 +529,13 @@ static vx_status fit_uyvy_from_uyvy(vx_image image,
             output_row[x / 2u] = output_row[camera->output_x / 2u];
         }
         for (x = camera->output_x + camera->output_width;
-             x < IN_WIDTH; x += 2u)
+             x < input_width; x += 2u)
         {
             output_row[x / 2u] =
                 output_row[(camera->output_x + camera->output_width - 2u) / 2u];
         }
 
-        memcpy(dst_row, output_row, IN_WIDTH * 2u);
+        memcpy(dst_row, output_row, input_width * 2u);
     }
 
     return vxUnmapImagePatch(image, map_id);
@@ -822,8 +848,8 @@ static vx_array create_calibrated_lut(vx_context context)
     }
 
     memset(&config, 0, sizeof(config));
-    config.SVInCamFrmHeight = IN_HEIGHT;
-    config.SVInCamFrmWidth = IN_WIDTH;
+    config.SVInCamFrmHeight = input_height;
+    config.SVInCamFrmWidth = input_width;
     config.SVOutDisplayHeight = SV_LUT_HEIGHT;
     config.SVOutDisplayWidth = SV_LUT_WIDTH;
     config.numCameras = NUM_CAMERAS;
@@ -982,13 +1008,13 @@ static vx_array create_uncalibrated_lut(vx_context context)
             {
                 srv_lut_t *entry = &lut[(quadrant * QUADRANT_SIZE) +
                                         (row * QUADRANT_WIDTH) + column];
-                uint32_t source_x1 = (column * (IN_WIDTH - 1u)) /
+                uint32_t source_x1 = (column * (input_width - 1u)) /
                                      (QUADRANT_WIDTH - 1u);
-                uint32_t source_y1 = (row * (IN_HEIGHT - 1u)) /
+                uint32_t source_y1 = (row * (input_height - 1u)) /
                                      (QUADRANT_HEIGHT - 1u);
-                uint32_t source_x2 = (column * (IN_WIDTH - 1u)) /
+                uint32_t source_x2 = (column * (input_width - 1u)) /
                                      (QUADRANT_WIDTH - 1u);
-                uint32_t source_y2 = (row * (IN_HEIGHT - 1u)) /
+                uint32_t source_y2 = (row * (input_height - 1u)) /
                                      (QUADRANT_HEIGHT - 1u);
 
                 entry->x = (GL_VERTEX_DATATYPE)(is_left
@@ -1056,7 +1082,7 @@ static vx_status clear_unused_pair_images(vx_object_array inputs)
     for (i = 1; i <= 2; i++)
     {
         vx_image image = (vx_image)vxGetObjectArrayItem(inputs, i);
-        vx_rectangle_t rect = {0, 0, IN_WIDTH, IN_HEIGHT};
+        vx_rectangle_t rect = {0, 0, input_width, input_height};
         vx_imagepatch_addressing_t addr;
         vx_map_id map;
         uint8_t *data = NULL;
@@ -1065,8 +1091,8 @@ static vx_status clear_unused_pair_images(vx_object_array inputs)
         if (status == VX_SUCCESS)
         {
             uint32_t x, y;
-            for (y = 0; y < IN_HEIGHT; y++)
-                for (x = 0; x < IN_WIDTH * 2u; x++)
+            for (y = 0; y < input_height; y++)
+                for (x = 0; x < input_width * 2u; x++)
                     data[y * addr.stride_y + x] = (x & 1u) ? 16 : 128;
             status = vxUnmapImagePatch(image, map);
         }
@@ -1275,6 +1301,7 @@ int main(int argc, char *argv[])
     const char *use_calibration_text = getenv("APP_SRV_USE_CALIBRATION");
     const char *pair_lut = getenv("APP_SRV_PAIR_LUT");
     int pair_mode = (pair_lut != NULL) && (pair_lut[0] != '\0');
+    const char *full_res_text = getenv("APP_SRV_PAIR_FULL_RES");
     const char *devices[NUM_CAMERAS];
     uint32_t frame_count = 0u;
     uint32_t calibration_frame = 30u;
@@ -1311,6 +1338,21 @@ int main(int argc, char *argv[])
     setvbuf(stderr, NULL, _IOLBF, 0);
     signal(SIGINT, request_stop);
     signal(SIGTERM, request_stop);
+
+    if (full_res_text != NULL && strcmp(full_res_text, "0") != 0)
+    {
+        if (strcmp(full_res_text, "1") != 0 || !pair_mode ||
+            (calibration_dir != NULL && calibration_dir[0] != '\0'))
+        {
+            fprintf(stderr, "APP_SRV_PAIR_FULL_RES=1 requires pair mode without legacy calibration capture\n");
+            return 1;
+        }
+        full_resolution_pair = 1;
+        input_width = MAX_IN_WIDTH;
+        input_height = MAX_IN_HEIGHT;
+    }
+    printf("jk_srv_live: GPU inputs %ux%u, orientation=%s\n",
+           input_width, input_height, full_resolution_pair ? "GPU LUT" : "CPU");
 
     memset(cameras, 0, sizeof(cameras));
     for (i = 0; i < NUM_CAMERAS; i++)
@@ -1388,7 +1430,7 @@ int main(int argc, char *argv[])
     tivxHwaLoadKernels(context);
     tivxVideoIOLoadKernels(context);
 
-    exemplar = vxCreateImage(context, IN_WIDTH, IN_HEIGHT, VX_DF_IMAGE_UYVY);
+    exemplar = vxCreateImage(context, input_width, input_height, VX_DF_IMAGE_UYVY);
     inputs = vxCreateObjectArray(context, (vx_reference)exemplar, NUM_CAMERAS);
     release_image(&exemplar);
 

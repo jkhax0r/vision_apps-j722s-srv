@@ -141,7 +141,7 @@ def bake(models, mode, args):
         weights[~(valid[0] | valid[1])] = 0
         return sources, weights
 
-    meshes, blends = [], []
+    meshes, full_meshes, blends = [], [], []
     for q in range(4):
         left, top = q in (0, 3), q in (0, 1)
         col, row = np.meshgrid(np.linspace(0, 1, 136), np.linspace(0, 1, 136))
@@ -157,15 +157,23 @@ def bake(models, mode, args):
         entry = np.zeros((len(local), 7), dtype='<i2')
         entry[:, 0] = np.rint(screen[:, 0]*1080-540)
         entry[:, 1] = np.rint(540-screen[:, 1]*1080)
+        full_entry = entry.copy()
         for offset, source in ((3, sources[1]), (5, sources[0])):
             normalized = source/3+[0, 40]
             entry[:, offset] = np.rint(np.clip(normalized[:, 1], 0, 479)*16)
             entry[:, offset+1] = np.rint(np.clip(normalized[:, 0], 0, 639)*16)
+            # Calibration PNGs are rotated 180 degrees. Native GPU inputs
+            # are not: reverse both axes here and address pixel centers.
+            native = [1919, 1199]-np.clip(source, [0, 0], [1919, 1199])+.5
+            full_entry[:, offset] = np.rint(native[:, 1]*16)
+            full_entry[:, offset+1] = np.rint(native[:, 0]*16)
         weight0 = np.rint(weights[:, 1]*255).astype(np.uint8)
         weight1 = np.where(weights.sum(1) > 0, 255-weight0, 0).astype(np.uint8)
         meshes.append(entry)
+        full_meshes.append(full_entry)
         blends.append(np.c_[weight0, weight1])
     np.concatenate(meshes).tofile(ROOT/f'{mode}_mesh.bin')
+    np.concatenate(full_meshes).tofile(ROOT/f'{mode}_fullres_mesh.bin')
     np.concatenate(blends).tofile(ROOT/f'{mode}_blend.bin')
     xx, yy = np.meshgrid(np.linspace(0, 1, 640), np.linspace(0, 1, 800))
     sources, weights = corrected(np.c_[xx.ravel(), yy.ravel()])
