@@ -1,0 +1,4 @@
+pose_*/*
+!pose_*/gmsl*.corners.npz
+*.png
+__pycache__/
