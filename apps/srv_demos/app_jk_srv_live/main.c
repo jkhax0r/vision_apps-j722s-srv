@@ -1026,6 +1026,56 @@ static vx_array create_uncalibrated_lut(vx_context context)
     return array;
 }
 
+static vx_array read_pair_lut(vx_context context, const char *path)
+{
+    const size_t bytes = QUADRANTS * QUADRANT_SIZE * sizeof(srv_lut_t);
+    void *data = malloc(bytes);
+    FILE *fp = fopen(path, "rb");
+    vx_array array = NULL;
+
+    if ((data != NULL) && (fp != NULL) &&
+        (fread(data, 1, bytes, fp) == bytes) && (fgetc(fp) == EOF))
+    {
+        array = vxCreateArray(context, VX_TYPE_UINT16, bytes / 2u);
+        if ((object_status((vx_reference)array) != VX_SUCCESS) ||
+            (vxAddArrayItems(array, bytes / 2u, data, 2u) != VX_SUCCESS))
+        {
+            if (array != NULL) vxReleaseArray(&array);
+        }
+    }
+    if (fp != NULL) fclose(fp);
+    free(data);
+    if (array == NULL)
+        fprintf(stderr, "jk_srv_live: invalid pair LUT %s (expected %zu bytes)\n", path, bytes);
+    return array;
+}
+
+static vx_status clear_unused_pair_images(vx_object_array inputs)
+{
+    uint32_t i;
+    for (i = 1; i <= 2; i++)
+    {
+        vx_image image = (vx_image)vxGetObjectArrayItem(inputs, i);
+        vx_rectangle_t rect = {0, 0, IN_WIDTH, IN_HEIGHT};
+        vx_imagepatch_addressing_t addr;
+        vx_map_id map;
+        uint8_t *data = NULL;
+        vx_status status = vxMapImagePatch(image, &rect, 0, &map, &addr,
+            (void **)&data, VX_WRITE_ONLY, VX_MEMORY_TYPE_HOST, VX_NOGAP_X);
+        if (status == VX_SUCCESS)
+        {
+            uint32_t x, y;
+            for (y = 0; y < IN_HEIGHT; y++)
+                for (x = 0; x < IN_WIDTH * 2u; x++)
+                    data[y * addr.stride_y + x] = (x & 1u) ? 16 : 128;
+            status = vxUnmapImagePatch(image, map);
+        }
+        release_image(&image);
+        if (status != VX_SUCCESS) return status;
+    }
+    return VX_SUCCESS;
+}
+
 static vx_status write_image_raw(const char *path, vx_image image)
 {
     vx_status status;
@@ -1223,6 +1273,8 @@ int main(int argc, char *argv[])
     const char *calibration_dir = getenv("APP_CALIB_CAPTURE_DIR");
     const char *calibration_frame_text = getenv("APP_CALIB_CAPTURE_FRAME");
     const char *use_calibration_text = getenv("APP_SRV_USE_CALIBRATION");
+    const char *pair_lut = getenv("APP_SRV_PAIR_LUT");
+    int pair_mode = (pair_lut != NULL) && (pair_lut[0] != '\0');
     const char *devices[NUM_CAMERAS];
     uint32_t frame_count = 0u;
     uint32_t calibration_frame = 30u;
@@ -1297,7 +1349,7 @@ int main(int argc, char *argv[])
     else
         printf("jk_srv_live: frames=%u output=%s\n", frame_count, output_path);
     printf("jk_srv_live: %s GPU LUT, camera order front/right/back/left\n",
-           use_calibration ? "TI calibrated" : "identity quadrant");
+           pair_mode ? "GMSL pair" : (use_calibration ? "TI calibrated" : "identity quadrant"));
     if ((calibration_dir != NULL) && (calibration_dir[0] != '\0'))
     {
         printf("jk_srv_live: calibration capture frame=%u directory=%s\n",
@@ -1306,6 +1358,7 @@ int main(int argc, char *argv[])
 
     for (i = 0; i < NUM_CAMERAS; i++)
     {
+        if (pair_mode && (i == 1u || i == 2u)) continue;
         if (camera_open(&cameras[i], devices[i]) != 0)
         {
             status = VX_FAILURE;
@@ -1339,7 +1392,9 @@ int main(int argc, char *argv[])
     inputs = vxCreateObjectArray(context, (vx_reference)exemplar, NUM_CAMERAS);
     release_image(&exemplar);
 
-    if (use_calibration != 0)
+    if (pair_mode)
+        srv_lut = read_pair_lut(context, pair_lut);
+    else if (use_calibration != 0)
         srv_lut = create_calibrated_lut(context);
     else
         srv_lut = create_uncalibrated_lut(context);
@@ -1418,6 +1473,11 @@ int main(int argc, char *argv[])
         fprintf(stderr, "jk_srv_live: vxVerifyGraph failed: %d\n", status);
         goto cleanup;
     }
+    if (pair_mode && (clear_unused_pair_images(inputs) != VX_SUCCESS))
+    {
+        status = VX_FAILURE;
+        goto cleanup;
+    }
 
     start_time = now_seconds();
     for (frame = 0; ((frame_count == 0u) || (frame < frame_count)) &&
@@ -1430,6 +1490,7 @@ int main(int argc, char *argv[])
         memset(workers, 0, sizeof(workers));
         for (i = 0; i < NUM_CAMERAS; i++)
         {
+            if (pair_mode && (i == 1u || i == 2u)) continue;
             workers[i].camera = &cameras[i];
             workers[i].image = (vx_image)vxGetObjectArrayItem(inputs, i);
             if (object_status((vx_reference)workers[i].image) != VX_SUCCESS)
@@ -1437,7 +1498,7 @@ int main(int argc, char *argv[])
                 status = VX_FAILURE;
                 break;
             }
-            if (pthread_create(&threads[i], NULL, capture_worker, &workers[i]) != 0)
+            if (pthread_create(&threads[threads_started], NULL, capture_worker, &workers[i]) != 0)
             {
                 fprintf(stderr, "jk_srv_live: pthread_create failed for camera %u\n", i);
                 status = VX_FAILURE;
@@ -1452,7 +1513,7 @@ int main(int argc, char *argv[])
         }
         for (i = 0; i < NUM_CAMERAS; i++)
         {
-            if (i < threads_started)
+            if (workers[i].image != NULL)
             {
                 capture_seconds += workers[i].capture_seconds;
                 convert_seconds += workers[i].convert_seconds;
@@ -1462,7 +1523,7 @@ int main(int argc, char *argv[])
                 }
             }
         }
-        if ((threads_started != NUM_CAMERAS) || (status != VX_SUCCESS))
+        if ((threads_started != (pair_mode ? 2u : NUM_CAMERAS)) || (status != VX_SUCCESS))
         {
             for (i = 0; i < NUM_CAMERAS; i++)
             {
@@ -1478,6 +1539,7 @@ int main(int argc, char *argv[])
 
             for (i = 0; i < NUM_CAMERAS; i++)
             {
+                if (pair_mode && (i == 1u || i == 2u)) continue;
                 snprintf(path, sizeof(path), "%s/%s", calibration_dir,
                          calibration_camera_names[i]);
                 status = write_image_nv12(path, workers[i].image);

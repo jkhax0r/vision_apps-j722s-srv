@@ -133,5 +133,5 @@ XDG_RUNTIME_DIR="$XDG_RUNTIME_DIR" WAYLAND_DISPLAY="$WAYLAND_DISPLAY" \
 
 configure_gmsl "$CAM_WIDTH" "$CAM_HEIGHT" "$CAM_FPS"
 
-cd /opt/jk-ti-srv
+cd "${APP_SRV_RUNTIME_DIR:-/opt/jk-ti-srv}"
 ./vx_app_jk_srv_live.out "$@"

@@ -114,7 +114,7 @@ typedef struct {
 } t_index_buffer;
 
 t_index_buffer index_buffers[MAX_INDEX_BUFFERS];
-unsigned int active_index_buffer = 1;
+unsigned int active_index_buffer = 0;
 
 #ifdef STANDALONE
 unsigned int active_image_set = 0;
@@ -126,8 +126,8 @@ static bool lut_updated = false;
 static bool lut_external = true;
 static void *lut_staging;
 
-/* The 4-pixel LUT grid spans x=-540..536 and y=-536..540. Center it and
- * overscan by one grid step so rasterization cannot leave an invalid edge. */
+/* The pair-test mesh includes the exact -540..540 viewport boundaries.
+ * Draw every grid row/column, including the last one at index 135. */
 //Shaders for surround view
 static const char srv_vert_shader_lut[] =
 " attribute vec3 aVertexPosition;\n "
@@ -153,7 +153,7 @@ static const char srv_vert_shader_lut[] =
 " uniform float uTextureY;\n "
 #endif
 " void main(void) {\n "
-"     gl_Position = vec4((aVertexPosition.x + 2.0)/536.0, (aVertexPosition.y - 2.0)/536.0, 0.0, 1.0);\n "
+"     gl_Position = vec4(aVertexPosition.x/540.0, aVertexPosition.y/540.0, 0.0, 1.0);\n "
 "     outFloatChannelX = aVertexPosition.x/(uRangeX * 2.0);\n"
 "     outFloatChannelY = aVertexPosition.y/(uRangeY * 2.0);\n"
 "     outFloatChannelZ = aVertexPosition.z/450.0f;\n"
@@ -248,7 +248,7 @@ static const char srv_vert_shader[] =
 #endif
 
 " void main(void) {\n "
-"     gl_Position = vec4((aVertexPosition.x + 2.0)/536.0, (aVertexPosition.y - 2.0)/536.0, 0.0, 1.0);\n "
+"     gl_Position = vec4(aVertexPosition.x/540.0, aVertexPosition.y/540.0, 0.0, 1.0);\n "
 "     outNormTexture.x = aTextureCoord1.t/uTextureX;\n"
 "     outNormTexture.y = aTextureCoord1.s/uTextureY;\n"
 "     outNormTexture1.x = aTextureCoord2.t/uTextureX;\n"
@@ -442,10 +442,27 @@ int srv_setup(render_state_t *pObj)
 	{
 		// Generate the BlendLUT if it wasn't passed
 		pObj->blendLUT3D = malloc(sizeof(int16_t) * POINTS_WIDTH/POINTS_SUBX * POINTS_HEIGHT/POINTS_SUBY * 9 * 2);
+		const char *pair_blend = getenv("APP_SRV_PAIR_BLEND");
+		if(pair_blend != NULL && pair_blend[0] != '\0')
+		{
+			const size_t bytes = QUADRANTS * QUADRANT_SIZE * sizeof(srv_blend_lut_t);
+			FILE *fp = fopen(pair_blend, "rb");
+			bool valid = fp != NULL && pObj->blendLUT3D != NULL &&
+				fread(pObj->blendLUT3D, 1, bytes, fp) == bytes && fgetc(fp) == EOF;
+			if(fp != NULL) fclose(fp);
+			if(!valid)
+			{
+				fprintf(stderr, "SRV: invalid pair blend LUT %s\n", pair_blend);
+				return -1;
+			}
+		}
+		else
+		{
 		srv_generate_blend_lut(POINTS_WIDTH, POINTS_HEIGHT,
 				POINTS_SUBX,
 				POINTS_SUBY,
 				(srv_blend_lut_t *)pObj->blendLUT3D);
+		}
 	}
 #endif
 	if(srv_render_to_file == true)
@@ -681,6 +698,7 @@ void srv_draw(render_state_t *pObj, GLuint *texYuv, int viewport_id)
 {
 	int i;
 	static int quadrant_mode = -1;
+	const bool pair_mode = getenv("APP_SRV_PAIR_LUT") != NULL;
 	GLuint *tex = texYuv;
 	if(quadrant_mode < 0)
 	{
@@ -700,8 +718,8 @@ void srv_draw(render_state_t *pObj, GLuint *texYuv, int viewport_id)
 	//then change the meshes and draw
 	for(i = 0;i < QUADRANTS;i ++)
 	{
-		int tex1 = quadrant_mode ? (3-i) : (0+i)%4;
-		int tex2 = quadrant_mode ? tex1 : (3+i)%4;
+		int tex1 = pair_mode ? 0 : (quadrant_mode ? (3-i) : (0+i)%4);
+		int tex2 = pair_mode ? 3 : (quadrant_mode ? tex1 : (3+i)%4);
 		onscreen_mesh_state_restore_program_textures_attribs(
 				pObj, tex, tex1, tex2, viewport_id);
 		onscreen_mesh_state_restore_vbo(

@@ -72,6 +72,7 @@
 #include <utils/remote_service/include/app_remote_service.h>
 #include <utils/perf_stats/include/app_perf_stats.h>
 #include <stdint.h>
+#include <stdlib.h>
 
 #include <app_mem_map.h>
 #include <app_cfg.h>
@@ -209,6 +210,14 @@ static int32_t appCommonInitLocal()
         ipc_init_prm.tiovx_log_rt_mem_size   = TIOVX_LOG_RT_MEM_SIZE;
         ipc_init_prm.self_cpu_id = APP_IPC_CPU_MPU1_0;
 
+        /* This isolated GPU test has no remote-core nodes. Keep descriptor
+         * memory/host IPC, without opening absent C7/R5 RPMsg endpoints. */
+        if (getenv("APP_SRV_PAIR_LUT") != NULL)
+        {
+            ipc_init_prm.num_cpus = 1;
+            ipc_init_prm.enabled_cpu_id_list[0] = APP_IPC_CPU_MPU1_0;
+        }
+
         status = appIpcInit(&ipc_init_prm);
         if(status!=0)
         {
@@ -253,4 +262,3 @@ static int32_t appCommonDeInitLocal()
 
     return status;
 }
-
