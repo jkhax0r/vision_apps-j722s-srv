@@ -13,7 +13,7 @@ physical distances/poses; it does not change the pixel-to-grid correspondence.
 
 ## Captures And Fit
 
-Fresh images captured at 2026-09-16T18:45:43Z from the stable gmsl0/gmsl1
+Fresh images captured at 2026-09-16T18:45:42Z (DUT clock) from the stable gmsl0/gmsl1
 device links. Each packed UYVY file is 1920x1200, 4,608,000 bytes. PNGs are
 rotated 180 degrees, consistent with the previous lens calibration. Local
 files are under `captures/`; remote originals are under
