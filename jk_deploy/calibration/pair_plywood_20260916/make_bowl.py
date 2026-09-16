@@ -13,7 +13,8 @@ import cv2
 import numpy as np
 from scipy.interpolate import RegularGridInterpolator
 
-ROOT = Path(__file__).resolve().parent
+TOOLS = Path(__file__).resolve().parent
+ROOT = TOOLS
 sys.path.insert(0, str(ROOT.parent/'pair_final_20260908T184734Z'))
 import make_pair as base
 
@@ -53,7 +54,7 @@ def generate_surface(models, half_base):
         centers.append([center[0], -center[1], 0])
     centers = np.array(centers, dtype=np.float32)
     xyz = np.full((270, 270, 3), np.nan, dtype=np.float32)
-    lib = ctypes.CDLL(str(ROOT/'ti_bowl_helper.so'))
+    lib = ctypes.CDLL(str(TOOLS/'ti_bowl_helper.so'))
     ptr = ctypes.POINTER(ctypes.c_float)
     lib.jk_generate_bowl.argtypes = [ptr, ctypes.c_int, ptr]
     lib.jk_generate_bowl.restype = ctypes.c_int
@@ -68,10 +69,13 @@ def generate_surface(models, half_base):
 
 
 def main():
+    global ROOT
     parser = argparse.ArgumentParser()
+    parser.add_argument('--session', type=Path, default=ROOT)
     parser.add_argument('--height-mm', type=float, default=50)
     parser.add_argument('--base-half-cells', type=int, default=80)
     args = parser.parse_args()
+    ROOT = args.session.resolve()
     if not 0 < args.height_mm <= 150 or not 4 <= args.base_half_cells <= 400:
         parser.error('Height must be in (0,150] mm and base half size in [4,400]')
     alignment, models = load_models()
@@ -104,7 +108,7 @@ def finish(stage, result, surface, grid, xyz, centers, scale, args):
     same_blend = (stage/'bowl_blend.bin').read_bytes() == (ROOT/'lens_blend.bin').read_bytes()
     if not same_blend:
         raise RuntimeError('Bowl changes source coverage/blending; lower height for a fair A/B')
-    source = ROOT.parents[2]/'kernels/srv/c66/core_generate_3dbowl.c'
+    source = TOOLS.parents[2]/'kernels/srv/c66/core_generate_3dbowl.c'
     result.update(generator='TI svGenerate_3D_Bowl, unmodified C via host adapter',
                   generator_sha256=hashlib.sha256(source.read_bytes()).hexdigest(),
                   base_half_cells=args.base_half_cells,

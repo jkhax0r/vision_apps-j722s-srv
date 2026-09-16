@@ -1,0 +1,13 @@
+{
+  "square_mm": 27.25,
+  "anchor_corner": 2,
+  "marker_corners": [
+    [[1502, 516], [1626, 608], [1578, 725], [1443, 625]],
+    [[243, 764], [343, 657], [416, 757], [304, 873]]
+  ],
+  "occlusions": [
+    [[1395, 435, 1675, 755], [1550, 785, 1705, 950], [475, 0, 1045, 740], [1140, 280, 1380, 420], [70, 650, 395, 960], [930, 675, 1370, 900], [700, 820, 990, 1040], [710, 1010, 880, 1200]],
+    [[195, 580, 440, 900], [475, 650, 625, 820], [0, 805, 175, 1000], [295, 980, 415, 1200], [965, 1080, 1115, 1200], [1240, 280, 1635, 645], [1600, 440, 1920, 960]]
+  ],
+  "notes": "Lowered tripod. Printed TL, TR, BR, BL marker corners; BR is nearest the yellow circle and anchors the checkerboard cell. Raised tools, circle, paper, cup and tripod excluded from floor fit. Same 27.25 mm checker pitch and separate September 8 lens models."
+}

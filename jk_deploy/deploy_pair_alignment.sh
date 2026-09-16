@@ -2,7 +2,7 @@
 set -euo pipefail
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 TARGET="${TARGET:?Set TARGET to root@TARGET_IP}"
-ALIGNMENT="${PAIR_ALIGNMENT:-plywood_20260916}"
+ALIGNMENT="${PAIR_ALIGNMENT:-lowered_20260916T1954}"
 if [[ ! "$ALIGNMENT" =~ ^[A-Za-z0-9_-]+$ ]]; then
     echo "Invalid PAIR_ALIGNMENT name" >&2
     exit 1

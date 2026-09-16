@@ -7,7 +7,7 @@ case "$MODE" in
     lens|measured|bowl) ;;
     *) echo "PAIR_WARP_MODE must be lens, measured, or bowl" >&2; exit 1 ;;
 esac
-ALIGNMENT="${PAIR_ALIGNMENT:-plywood_20260916}"
+ALIGNMENT="${PAIR_ALIGNMENT:-lowered_20260916T1954}"
 if [[ ! "$ALIGNMENT" =~ ^[A-Za-z0-9_-]+$ ]]; then
     echo "Invalid PAIR_ALIGNMENT name" >&2
     exit 1

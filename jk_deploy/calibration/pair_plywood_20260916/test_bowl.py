@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Check that the bowl comparison changes only the corrected source mapping."""
 import hashlib
+import argparse
 import json
 import os
 from pathlib import Path
@@ -20,13 +21,20 @@ ROOT = Path(__file__).resolve().parent
 
 class BowlTests(unittest.TestCase):
     def test_invalid_generation_keeps_existing_files(self):
-        paths = list(ROOT.glob('bowl_*.bin'))+[ROOT/'bowl_settings.json']
-        before = [p.read_bytes() for p in paths]
-        result = subprocess.run([sys.executable, str(ROOT/'make_bowl.py'), '--height-mm', '100'],
-                                capture_output=True, text=True)
-        self.assertNotEqual(result.returncode, 0)
-        self.assertIn('Bowl changes source coverage/blending', result.stderr)
-        self.assertEqual(before, [p.read_bytes() for p in paths])
+        with tempfile.TemporaryDirectory() as work:
+            stage = Path(work)
+            (stage/'captures').symlink_to(ROOT/'captures', target_is_directory=True)
+            paths = list(ROOT.glob('bowl_*.bin'))+[ROOT/'bowl_settings.json']
+            for source in paths+[ROOT/'alignment.json', ROOT/'settings.json']:
+                shutil.copyfile(source, stage/source.name)
+            (stage/'lens_blend.bin').write_bytes(b'intentionally incompatible blend')
+            before = [(stage/p.name).read_bytes() for p in paths]
+            result = subprocess.run([sys.executable, str(make_bowl.TOOLS/'make_bowl.py'),
+                                     '--session', str(stage), '--height-mm', '50'],
+                                    capture_output=True, text=True)
+            self.assertNotEqual(result.returncode, 0)
+            self.assertIn('Bowl changes source coverage/blending', result.stderr)
+            self.assertEqual(before, [(stage/p.name).read_bytes() for p in paths])
 
     def test_launcher_preflight(self):
         with tempfile.TemporaryDirectory() as work:
@@ -101,4 +109,8 @@ class BowlTests(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    unittest.main()
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--session', type=Path, default=ROOT)
+    args, remaining = parser.parse_known_args()
+    ROOT = make_bowl.ROOT = args.session.resolve()
+    unittest.main(argv=[sys.argv[0], *remaining])

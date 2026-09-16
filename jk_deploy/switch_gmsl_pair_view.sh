@@ -10,13 +10,17 @@ esac
 exec 9>/run/lock/jk-ti-srv-pair-switch.lock
 flock -w 15 9
 CURRENT=lens
+CURRENT_ALIGNMENT=""
 ENVIRONMENT="$(systemctl show "$UNIT" -p Environment --value 2>/dev/null || true)"
 for item in $ENVIRONMENT; do
-    case "$item" in PAIR_WARP_MODE=*) CURRENT="${item#*=}" ;; esac
+    case "$item" in
+        PAIR_WARP_MODE=*) CURRENT="${item#*=}" ;;
+        PAIR_ALIGNMENT=*) CURRENT_ALIGNMENT="${item#*=}" ;;
+    esac
 done
 STATE="$(systemctl show "$UNIT" -p ActiveState --value 2>/dev/null || true)"
 if [ "$ACTION" = status ]; then
-    echo "Pair view: ${CURRENT/lens/flat}; service: ${STATE:-not loaded}"
+    echo "Pair view: ${CURRENT/lens/flat}; service: ${STATE:-not loaded}; alignment: ${CURRENT_ALIGNMENT:-default}"
     exit 0
 fi
 if [ "$ACTION" = toggle ]; then
@@ -24,7 +28,7 @@ if [ "$ACTION" = toggle ]; then
 fi
 MODE="$ACTION"
 if [ "$MODE" = flat ]; then MODE=lens; fi
-ALIGNMENT="${PAIR_ALIGNMENT:-plywood_20260916}"
+ALIGNMENT="${PAIR_ALIGNMENT:-${CURRENT_ALIGNMENT:-lowered_20260916T1954}}"
 # Validate before interrupting a working display. The A/B pair always uses
 # native-resolution inputs and the same alignment, crop and blend.
 PAIR_WARP_MODE="$MODE" PAIR_ALIGNMENT="$ALIGNMENT" PAIR_FULL_RES=1 \
