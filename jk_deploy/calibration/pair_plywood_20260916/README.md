@@ -43,8 +43,9 @@ the plywood, selected to avoid uncovered corners. The offline validity check
 has zero uncovered output pixels for both methods. The raw panes retain each
 camera's full field of view. The seam remains at x=-6.5.
 
-The current narrow-blend experiment uses 0.125 grid cells rather than the
-original 1.0. The nominal fade is 3.56 display pixels; the GPU interpolates
+The original 1.0-cell (nominal 28.4-pixel) blend is restored as the default
+and live setting at the user's request. The narrow-blend experiment used
+0.125 grid cells. Its nominal fade is 3.56 display pixels; the GPU interpolates
 the sampled weights across one mesh interval, approximately 4.7 pixels.
 Only blend weights change, not the camera poses, source-coordinate meshes,
 crop, resolution or executable. This reduces cross-fading/ghosting but can
@@ -64,8 +65,9 @@ Narrow-blend verification: both methods' camera fits and source-coordinate
 meshes remained byte-identical; blend normalization and single-interval
 transition checks passed. A 60-frame DUT run exited cleanly at 15.11 fps;
 the inspected GPU render is `live_narrow_probe.png` (local only). The narrow
-version was left running as `jk-ti-srv-pair`, writing its final frame to
-`/tmp/jk-plywood-narrow-live.raw` when stopped.
+version was subsequently stopped and replaced with the original wider blend.
+Its final frame is `/tmp/jk-plywood-narrow-live.raw` on the DUT. To reproduce
+the narrow experiment, rebuild with `PAIR_BLEND_CELLS=0.125` and redeploy.
 
 ## Reproduce
 
