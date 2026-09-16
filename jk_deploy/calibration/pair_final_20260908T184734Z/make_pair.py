@@ -17,6 +17,7 @@ sys.path.insert(0, str(LENS_ROOT))
 from fit_intrinsics import square_lattice
 
 PITCH = 27.25
+ANCHOR_CORNER = 3
 # Black outer marker corners in printed TL, TR, BR, BL order. BL is the
 # checker-grid anchor nearest the yellow circle, as positioned by the user.
 MARKER = (
@@ -100,7 +101,7 @@ def align(models):
     directions = marker[[1, 3]]-marker[0]
     directions /= np.linalg.norm(directions, axis=1)[:, None]
     rotation = min(rotations(), key=lambda r: np.linalg.norm(directions@r.T-target))
-    shift = -np.rint(marker[3]@rotation.T)
+    shift = -np.rint(marker[ANCHOR_CORNER]@rotation.T)
     models[0].update(rotation=rotation, shift=shift)
     anchor = marker@rotation.T+shift
     options = []
@@ -134,7 +135,7 @@ def bake(models, mode, args):
             inside &= (source[:, 1] >= 0) & (source[:, 1] <= 1199)
             sources.append(np.nan_to_num(source))
             valid.append(inside)
-        alpha = np.clip(.5-world[:, 0]/args.feather, 0, 1)
+        alpha = np.clip(.5-(world[:, 0]-args.seam_x)/args.feather, 0, 1)
         alpha = np.where(~valid[1], 1, alpha)
         alpha = np.where(~valid[0], 0, alpha)
         weights = np.c_[alpha, 1-alpha]
@@ -188,16 +189,29 @@ def bake(models, mode, args):
     cv2.imwrite(str(ROOT/f'{mode}_stitched.png'), stitch)
     cv2.imwrite(str(ROOT/f'{mode}_preview.png'), np.concatenate([np.concatenate(raw), stitch], axis=1))
     return {'mode': mode, 'x': args.x, 'y': args.y, 'width': args.width, 'height': height,
-            'feather_cells': args.feather, 'uncovered_fraction': float(np.mean(weights.sum(1) == 0))}
+            'feather_cells': args.feather, 'seam_x': args.seam_x,
+            'uncovered_fraction': float(np.mean(weights.sum(1) == 0))}
 
 
 def main():
+    global ROOT, MARKER, OCCLUSIONS, PITCH, ANCHOR_CORNER
     parser = argparse.ArgumentParser()
+    parser.add_argument('--session', type=Path, help='New capture directory containing settings.json')
     parser.add_argument('--x', type=float, default=-15)
     parser.add_argument('--y', type=float, default=-12)
     parser.add_argument('--width', type=float, default=30)
     parser.add_argument('--feather', type=float, default=1)
+    parser.add_argument('--seam-x', type=float, default=0)
     args = parser.parse_args()
+    if args.session:
+        ROOT = args.session.resolve()
+        settings = json.loads((ROOT/'settings.json').read_text())
+        MARKER = settings['marker_corners']
+        OCCLUSIONS = settings['occlusions']
+        PITCH = float(settings['square_mm'])
+        ANCHOR_CORNER = int(settings['anchor_corner'])
+        if PITCH <= 0 or ANCHOR_CORNER not in range(4):
+            parser.error('Invalid square size or marker anchor')
     if args.width <= 0 or args.feather <= 0:
         parser.error('Width and feather must be positive')
     models = [fit(c) for c in (0, 1)]

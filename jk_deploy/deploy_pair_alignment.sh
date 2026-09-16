@@ -2,7 +2,12 @@
 set -euo pipefail
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 TARGET="${TARGET:?Set TARGET to root@TARGET_IP}"
-CAL_DIR="$SCRIPT_DIR/calibration/pair_final_20260908T184734Z"
+ALIGNMENT="${PAIR_ALIGNMENT:-plywood_20260916}"
+if [[ ! "$ALIGNMENT" =~ ^[A-Za-z0-9_-]+$ ]]; then
+    echo "Invalid PAIR_ALIGNMENT name" >&2
+    exit 1
+fi
+CAL_DIR="$SCRIPT_DIR/calibration/pair_$ALIGNMENT"
 APP="$SCRIPT_DIR/../out/J722S/A53/LINUX/${PROFILE:-release}/vx_app_jk_srv_live.out"
 read -r -a SSH_ARGV <<< "${SSH_ARGS:-}"
 FILES=("$CAL_DIR/lens_mesh.bin" "$CAL_DIR/lens_blend.bin"
@@ -14,7 +19,7 @@ for file in "${FILES[@]}"; do
 done
 STAGE="$(ssh "${SSH_ARGV[@]}" "$TARGET" 'mktemp -d /tmp/jk-pair-alignment.XXXXXX')"
 scp "${SSH_ARGV[@]}" "${FILES[@]}" "$TARGET:$STAGE/"
-ssh "${SSH_ARGV[@]}" "$TARGET" "STAGE='$STAGE' bash -s" <<'REMOTE'
+ssh "${SSH_ARGV[@]}" "$TARGET" "STAGE='$STAGE' ALIGNMENT='$ALIGNMENT' bash -s" <<'REMOTE'
 set -euo pipefail
 DEST=/opt/jk-ti-srv-pair
 test -x "$DEST/vx_app_jk_srv_live.out"
@@ -22,7 +27,7 @@ if pgrep -f '^./vx_app_jk_srv_live.out|^/opt/jk-ti-srv-pair/vx_app_jk_srv_live.o
     echo "Stop the live SRV app before deploying the pair alignment." >&2
     exit 1
 fi
-CAL_DIR="$DEST/calibration/final_20260908T184734Z"
+CAL_DIR="$DEST/calibration/$ALIGNMENT"
 install -d "$CAL_DIR"
 install -m 0644 "$STAGE/"*.bin "$STAGE/alignment.json" "$CAL_DIR/"
 install -m 0755 "$STAGE/run_gmsl_pair_test.sh" "$STAGE/run_gmsl_pair_calibrated.sh" "$DEST/"

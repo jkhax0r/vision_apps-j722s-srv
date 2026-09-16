@@ -1,5 +1,10 @@
 # Repositioned Two-GMSL Alignment
 
+September 16 update: the launcher/deployer now default to the newer plywood
+alignment. Select `PAIR_ALIGNMENT=final_20260908T184734Z` to reproduce this
+older session. For `systemd-run`, pass
+`--setenv=PAIR_ALIGNMENT=final_20260908T184734Z` explicitly.
+
 Fresh full-resolution captures taken September 8 at the user's final tripod
 position. The TI marker's bottom-left black corner (printed orientation) is
 the checker-grid anchor nearest the yellow circle. Both original 1920x1200

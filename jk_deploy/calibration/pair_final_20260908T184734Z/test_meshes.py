@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """Check the native-resolution GPU mesh contract without cameras or OpenCV."""
 from pathlib import Path
+import argparse
+import sys
 import unittest
 
 import numpy as np
@@ -32,4 +34,8 @@ class MeshTests(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    unittest.main()
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--session', type=Path, default=ROOT)
+    args, remaining = parser.parse_known_args()
+    ROOT = args.session.resolve()
+    unittest.main(argv=[sys.argv[0], *remaining])

@@ -1,0 +1,13 @@
+{
+  "square_mm": 27.25,
+  "anchor_corner": 1,
+  "marker_corners": [
+    [[1529, 610], [1607, 680], [1557, 751], [1479, 678]],
+    [[400, 550], [482, 478], [529, 552], [443, 625]]
+  ],
+  "occlusions": [
+    [[1415, 590, 1720, 820], [675, 925, 855, 1200]],
+    [[375, 460, 590, 715], [470, 355, 570, 450], [960, 825, 1120, 1200], [1440, 420, 1920, 1200]]
+  ],
+  "notes": "Marker corners in printed TL, TR, BR, BL order. TR is nearest yellow circle. Paper, raised circle and tripod parts excluded from floor fit. Square pitch provisionally retained from previous setup."
+}

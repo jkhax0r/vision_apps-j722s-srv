@@ -6,7 +6,12 @@ case "$MODE" in
     lens|measured) ;;
     *) echo "PAIR_WARP_MODE must be lens or measured" >&2; exit 1 ;;
 esac
-CAL_DIR="$SCRIPT_DIR/calibration/final_20260908T184734Z"
+ALIGNMENT="${PAIR_ALIGNMENT:-plywood_20260916}"
+if [[ ! "$ALIGNMENT" =~ ^[A-Za-z0-9_-]+$ ]]; then
+    echo "Invalid PAIR_ALIGNMENT name" >&2
+    exit 1
+fi
+CAL_DIR="$SCRIPT_DIR/calibration/$ALIGNMENT"
 export APP_SRV_PAIR_FULL_RES="${PAIR_FULL_RES:-1}"
 case "$APP_SRV_PAIR_FULL_RES" in
     1) MESH="${MODE}_fullres_mesh.bin" ;;
@@ -15,5 +20,5 @@ case "$APP_SRV_PAIR_FULL_RES" in
 esac
 export APP_SRV_PAIR_LUT="$CAL_DIR/$MESH"
 export APP_SRV_PAIR_BLEND="$CAL_DIR/${MODE}_blend.bin"
-echo "Pair alignment: final_20260908T184734Z, warp=$MODE, full-resolution=$APP_SRV_PAIR_FULL_RES"
+echo "Pair alignment: $ALIGNMENT, warp=$MODE, full-resolution=$APP_SRV_PAIR_FULL_RES"
 exec "$SCRIPT_DIR/run_gmsl_pair_test.sh" "$@"
