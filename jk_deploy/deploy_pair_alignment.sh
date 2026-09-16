@@ -13,7 +13,12 @@ read -r -a SSH_ARGV <<< "${SSH_ARGS:-}"
 FILES=("$CAL_DIR/lens_mesh.bin" "$CAL_DIR/lens_blend.bin"
        "$CAL_DIR/measured_mesh.bin" "$CAL_DIR/measured_blend.bin" "$CAL_DIR/alignment.json"
        "$CAL_DIR/lens_fullres_mesh.bin" "$CAL_DIR/measured_fullres_mesh.bin" "$APP"
-       "$SCRIPT_DIR/run_gmsl_pair_test.sh" "$SCRIPT_DIR/run_gmsl_pair_calibrated.sh")
+       "$SCRIPT_DIR/run_gmsl_pair_test.sh" "$SCRIPT_DIR/run_gmsl_pair_calibrated.sh"
+       "$SCRIPT_DIR/switch_gmsl_pair_view.sh")
+if [ -f "$CAL_DIR/bowl_settings.json" ]; then
+    FILES+=("$CAL_DIR/bowl_settings.json" "$CAL_DIR/bowl_mesh.bin"
+            "$CAL_DIR/bowl_fullres_mesh.bin" "$CAL_DIR/bowl_blend.bin")
+fi
 for file in "${FILES[@]}"; do
     test -s "$file" || { echo "Missing $file" >&2; exit 1; }
 done
@@ -30,7 +35,14 @@ fi
 CAL_DIR="$DEST/calibration/$ALIGNMENT"
 install -d "$CAL_DIR"
 install -m 0644 "$STAGE/"*.bin "$STAGE/alignment.json" "$CAL_DIR/"
-install -m 0755 "$STAGE/run_gmsl_pair_test.sh" "$STAGE/run_gmsl_pair_calibrated.sh" "$DEST/"
+if [ -f "$STAGE/bowl_settings.json" ]; then
+    install -m 0644 "$STAGE/bowl_settings.json" "$CAL_DIR/"
+fi
+install -m 0755 "$STAGE/run_gmsl_pair_test.sh" "$STAGE/run_gmsl_pair_calibrated.sh" \
+    "$STAGE/switch_gmsl_pair_view.sh" "$DEST/"
+if [ ! -e /root/srv_view.sh ] && [ ! -L /root/srv_view.sh ]; then
+    ln -s "$DEST/switch_gmsl_pair_view.sh" /root/srv_view.sh
+fi
 install -m 0755 "$STAGE/vx_app_jk_srv_live.out" "$DEST/"
 rm -r -- "$STAGE"
 echo "Installed isolated pair app and alignment. No system library, four-camera app or boot unit changed."

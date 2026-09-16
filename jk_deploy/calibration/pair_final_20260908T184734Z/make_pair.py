@@ -31,13 +31,15 @@ OCCLUSIONS = (
 cv2.setNumThreads(4)
 
 
-def objects(grid):
-    return np.c_[grid*PITCH, np.zeros(len(grid))].reshape(-1, 1, 3)
+def objects(grid, height_mm=0):
+    # The calibrated board frame has camera centers at negative Z.
+    z = -np.broadcast_to(np.asarray(height_mm, dtype=float), (len(grid),))
+    return np.c_[grid*PITCH, z].reshape(-1, 1, 3)
 
 
-def project(model, grid, pose=None):
+def project(model, grid, pose=None, height_mm=0):
     pose = model['pose'] if pose is None else pose
-    xy, _ = cv2.fisheye.projectPoints(objects(grid), pose[:3], pose[3:], model['K'], model['D'])
+    xy, _ = cv2.fisheye.projectPoints(objects(grid, height_mm), pose[:3], pose[3:], model['K'], model['D'])
     return xy.reshape(-1, 2)
 
 
@@ -119,17 +121,18 @@ def align(models):
     return error
 
 
-def bake(models, mode, args):
+def bake(models, mode, args, surface_height=None):
     hulls = [Delaunay(m['global_grid']) for m in models]
     maps = [CloughTocher2DInterpolator(m['global_grid'], m['points']) for m in models]
     height = args.width/(640/800)
 
     def corrected(uv):
         world = uv*[args.width, height]+[args.x, args.y]
+        z = 0 if surface_height is None else surface_height(world)
         sources, valid = [], []
         for model, hull, warp in zip(models, hulls, maps):
-            source = (project(model, (world-model['shift'])@model['rotation'])
-                      if mode == 'lens' else warp(world))
+            source = (warp(world) if mode == 'measured' else
+                      project(model, (world-model['shift'])@model['rotation'], height_mm=z))
             inside = (hull.find_simplex(world) >= 0) & np.isfinite(source).all(1)
             inside &= (source[:, 0] >= 0) & (source[:, 0] <= 1919)
             inside &= (source[:, 1] >= 0) & (source[:, 1] <= 1199)

@@ -1,3 +1,4 @@
 *.png
 *.uyvy
+*.so
 __pycache__/

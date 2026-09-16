@@ -1,0 +1,38 @@
+{
+  "mode": "bowl",
+  "x": -17.75,
+  "y": -6.75,
+  "width": 22.5,
+  "height": 28.125,
+  "feather_cells": 1.0,
+  "seam_x": -6.5,
+  "uncovered_fraction": 0.0,
+  "generator": "TI svGenerate_3D_Bowl, unmodified C via host adapter",
+  "generator_sha256": "2da618efd7b9c40b6efe35030a06a348b9b68af15bb111c4285b9bec99353bf1",
+  "base_half_cells": 80,
+  "base_half_mm": 128.29193115234375,
+  "height_max_mm": 50,
+  "height_min_mm": 0.0,
+  "native_height_scale": 0.09993896323531835,
+  "bowl_centers_ti_xy_mm": [
+    [
+      -112.38105010986328,
+      -576.8246459960938
+    ],
+    [
+      47.79922866821289,
+      -569.1316528320312
+    ]
+  ],
+  "uses_same_blend_as_flat": true,
+  "lens_files": [
+    "lens_20260908/gmsl0_intrinsics.json",
+    "lens_20260908/gmsl1_intrinsics.json"
+  ],
+  "artifact_sha256": {
+    "bowl_blend.bin": "8614046396e46c30953ef84c31645e96a40bec4904adda4a8d05e596f79522a0",
+    "bowl_fullres_mesh.bin": "36945f0292822ce8590a6963593434de7775ca20eb0c45e76791034c38763745",
+    "bowl_mesh.bin": "7b69c6e54be77f19e4e09c7dc39eb057b44126f5cbdae66f0b67600d966329c7"
+  },
+  "alignment_sha256": "107dfdf15a35ed194137de5d8c55acd798cd5ca5b6020f6c0267a44cb4f69cf3"
+}

@@ -1,6 +1,9 @@
 # Two-GMSL Plywood Alignment, September 16
 
 Target: `root@192.168.20.222`. Two TechNexion GMSL cameras; no analog inputs.
+The optional [flat / TI bowl A/B test](BOWL.md) uses the same separate lens
+calibrations and adds `~/srv_view.sh flat|bowl` on the DUT. Run it without an
+argument to toggle. The original flat mode remains available unchanged.
 The user positioned the checkerboard on nominal 4 ft x 4 ft plywood, with the
 3.5-inch TI square and a yellow 57.7 mm diameter, 12 mm tall circle visible
 in both cameras. No additional objects were needed.
