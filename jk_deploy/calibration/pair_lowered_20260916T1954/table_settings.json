@@ -4,25 +4,29 @@
     "far_cell": -7.75,
     "side_mm": 1219.2,
     "fit": "fill",
-    "notes": "Estimated left/far edge intersection from GMSL0 pixel (885,53); GMSL1 opposite far corner (895,79) cross-checks 4-foot span. Use the nominal 4x4-foot plywood, not hanging cloth. Fill keeps all table width and the far edge; the wide LCD crops the near edge. No stretched squares or invented blind-area pixels.",
+    "side_inset_cells": [
+      1.0,
+      1.0
+    ],
+    "notes": "Estimated left/far edge intersection from GMSL0 pixel (885,53); GMSL1 opposite far corner (895,79) cross-checks 4-foot span. Crop one checker cell inside each nominal side to exclude loose/wavy edge cloth. Keep a wide two-camera footprint, not a whole-square composition.",
     "side_cells": 44.741284403669724,
     "view_cells": [
-      -23.38,
+      -22.38,
       -7.75,
-      44.741284403669724,
-      27.963302752293576
+      42.741284403669724,
+      26.713302752293576
     ]
   },
   "modes": [
     {
       "mode": "lens",
-      "uncovered_table_fraction": 0.0825771484375,
+      "uncovered_table_fraction": 0.072419921875,
       "height_max_mm": 0.0
     },
     {
       "mode": "bowl",
-      "uncovered_table_fraction": 0.0843984375,
-      "height_max_mm": 76.84604385564612
+      "uncovered_table_fraction": 0.0730810546875,
+      "height_max_mm": 74.31583170369274
     }
   ],
   "width": 1280,
@@ -31,13 +35,13 @@
   "feather_cells": 1.0,
   "hashes": {
     "alignment.json": "5603e3b4d24eba8f527e9a9fe401cb45eddc584ee1b83dad2e71e7ffa55ef840",
-    "table_bounds.json": "bc75914438604bd1921b97041a1c021c9d94ea29b823f27aab3b176c5f23693d",
+    "table_bounds.json": "e39b4113f98c89321738d5356e63608864e15446d833f195c96460cc049693fe",
     "bowl_settings.json": "6c9f4a7827478c1f9023a899667112bd488cd7f48a16ac37c706db98c75539be",
-    "bowl_table_blend.bin": "c2dad922febfd2e77ed517949e404a69f0ab3dc5ce28cd115985f7736098f4cc",
-    "bowl_table_fullres_mesh.bin": "82ff4d0e8eacbefd1e6a6e36cd0ea663a71c8226f8fda528b042dd9616f8c964",
-    "bowl_table_mesh.bin": "58d570841772feb9206cbce453de417aed310b048e6b56d14e0517bdc2b27a66",
-    "lens_table_blend.bin": "5519f81f5772aa09f617ea568b1c830493bc45535bf432ede528dc2c1e8c7b5e",
-    "lens_table_fullres_mesh.bin": "9ebcfbc68d468893c62e5c82e38011556c95963eb73dd1500658508e134fd539",
-    "lens_table_mesh.bin": "2090f3fced1df91e3907a46846fcaed117522ed47ea6a316cbb6fed20fae62b3"
+    "bowl_table_blend.bin": "458dad6093ecb4f6d7cd818bdbcba9a54937e5b72a1931c563d910f6bf083ac9",
+    "bowl_table_fullres_mesh.bin": "3b9095a26d288876583236b37f8e61d9aace0796a40fe1398e1d20c08a4e65a5",
+    "bowl_table_mesh.bin": "4443764a8d26c6c011746b6ae0cd4a2e07da6dbd490a08c51515101814e8144d",
+    "lens_table_blend.bin": "ed66d1bc1021708d685e159ef7a5d014f3b50281a274a6a1bc84e33edff97fbc",
+    "lens_table_fullres_mesh.bin": "7db30771b92fbb991f1d706e45535801d2de7952fbcf27695d54f13d63d1d75f",
+    "lens_table_mesh.bin": "a9a0e52f73ad1c881fcafc5240bd0ac413966421951dac643c08bed99029489a"
   }
 }

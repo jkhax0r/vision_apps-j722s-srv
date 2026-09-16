@@ -11,19 +11,20 @@ Its far-left corner is estimated from the saved GMSL0 image at (885,53);
 the opposite far corner in GMSL1 at (895,79) cross-checks the table width.
 These are approximate edges, not newly surveyed corner positions.
 
-The active `fill` framing reaches both side edges and the far edge. It
-shows the full 48-inch width and 30 inches of depth, preserving square
-checker proportions on the 16:10 LCD. The near 18 inches of table are
-outside this crop. `contain` in the JSON instead fits all 48x48 inches
-with side margins; it is not the active layout.
+The active `fill` framing is cropped one 27.25 mm checker cell inside
+each nominal side (`side_inset_cells: [1,1]`) to exclude the loose/wavy
+edge cloth. It retains the far edge and a wide two-camera footprint,
+about 45.85 inches wide by 28.66 inches deep, without stretching the
+checker squares. This is not an attempt to show all four sides of the
+table. `contain` remains an inactive diagnostic option.
 
 The expanded view extrapolates the calibrated floor plane beyond the hull
 of detected checker corners, but never samples outside either camera's
 actual image or behind a camera. Missing coverage is black, not stretched
 edge pixels or fabricated content. At this lowered camera position:
 
-- Flat `fill` has approximately 8.26% uncovered area, near the tripod.
-- Bowl `fill` has approximately 8.44% uncovered area.
+- Flat `fill` has approximately 7.24% uncovered area, near the tripod.
+- Bowl `fill` has approximately 7.31% uncovered area.
 - A full-table `contain` check found approximately 35.6% of the table
   outside both cameras' views; changing layout cannot recover that region.
 
@@ -31,7 +32,7 @@ Both modes keep the existing one-cell feather and seam x=-3.75. Camera
 fallback weights can differ near the image limits, so unlike the tight
 split-pane test, the full-table blend BINs are not byte-identical. Bowl
 uses the same physical surface scale; the wider table reaches heights
-up to about 77 mm rather than the tight crop's 50 mm. Flat is left running.
+up to about 74 mm rather than the tight crop's 50 mm. Flat is left running.
 
 ## Use And Rebuild
 
@@ -78,5 +79,9 @@ syntax checks pass. The DUT 90-frame flat test exited cleanly: 5.821 seconds,
 15.7 fps after startup. `/tmp/jk-table-flat-probe.raw` was inspected locally
 as `live_table_probe.png`. It shows one full-screen corrected view, with
 no raw side panels; the blind region is intentionally visible.
+
+The subsequent side-inset refinement also passed all five table tests and
+a 60-frame DUT run (4.056 seconds, exit 0). Its GPU capture was inspected
+as `live_table_sides_probe.png`, then fullscreen flat playback was restarted.
 
 No system libraries, original four-camera app or boot services changed.

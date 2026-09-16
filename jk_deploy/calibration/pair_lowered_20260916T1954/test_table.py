@@ -40,6 +40,11 @@ class TableTests(unittest.TestCase):
         models, bounds, flat, height = make_table.setup()
         self.assertAlmostEqual(bounds['view_cells'][2]/bounds['view_cells'][3], 1.6)
         self.assertAlmostEqual(bounds['side_cells']*make_table.make_bowl.base.PITCH, 1219.2)
+        if bounds['fit'] == 'fill':
+            left, right = bounds.get('side_inset_cells', [0, 0])
+            self.assertAlmostEqual(bounds['view_cells'][0], bounds['left_cell']+left)
+            self.assertAlmostEqual(bounds['view_cells'][0]+bounds['view_cells'][2],
+                                   bounds['left_cell']+bounds['side_cells']-right)
         sources, weights, _, z = make_table.mapping(models, bounds, flat, height,
                                                    np.array([[.5, .3], [.5, 1]]), 'lens')
         np.testing.assert_array_equal(z, 0)

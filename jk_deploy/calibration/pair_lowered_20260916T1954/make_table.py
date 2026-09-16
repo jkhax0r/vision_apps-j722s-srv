@@ -19,7 +19,11 @@ def setup():
     bounds = json.loads((ROOT/'table_bounds.json').read_text())
     side = bounds['side_mm']/alignment['square_mm']
     if bounds['fit'] == 'fill':
-        view = [bounds['left_cell'], bounds['far_cell'], side, side/1.6]
+        left, right = bounds.get('side_inset_cells', [0, 0])
+        if not (np.isfinite([left, right]).all() and min(left, right) >= 0 and left+right < side):
+            raise ValueError('Side insets must be finite, nonnegative and leave a positive width')
+        width = side-left-right
+        view = [bounds['left_cell']+left, bounds['far_cell'], width, width/1.6]
     elif bounds['fit'] == 'contain':
         view = [bounds['left_cell']-.3*side, bounds['far_cell'], side*1.6, side]
     else:

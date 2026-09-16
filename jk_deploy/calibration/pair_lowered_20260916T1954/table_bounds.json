@@ -3,5 +3,6 @@
   "far_cell": -7.75,
   "side_mm": 1219.2,
   "fit": "fill",
-  "notes": "Estimated left/far edge intersection from GMSL0 pixel (885,53); GMSL1 opposite far corner (895,79) cross-checks 4-foot span. Use the nominal 4x4-foot plywood, not hanging cloth. Fill keeps all table width and the far edge; the wide LCD crops the near edge. No stretched squares or invented blind-area pixels."
+  "side_inset_cells": [1.0, 1.0],
+  "notes": "Estimated left/far edge intersection from GMSL0 pixel (885,53); GMSL1 opposite far corner (895,79) cross-checks 4-foot span. Crop one checker cell inside each nominal side to exclude loose/wavy edge cloth. Keep a wide two-camera footprint, not a whole-square composition."
 }
