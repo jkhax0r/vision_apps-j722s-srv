@@ -1,5 +1,9 @@
 # Lowered Tripod Calibration
 
+The current default is the [fullscreen table view](TABLE.md), without the
+two raw side panels. The tighter split-pane views described below remain
+available with `PAIR_LAYOUT=split`.
+
 Captured September 16, 2026 at 19:54:19 UTC from both GMSL cameras after
 lowering the tripod. Target: `root@192.168.20.222`. Remote originals:
 `/root/jk-lens-calibration/pair_20260916T195420Z`; local images are in `captures/`.

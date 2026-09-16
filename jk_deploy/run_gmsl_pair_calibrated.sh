@@ -13,14 +13,25 @@ if [[ ! "$ALIGNMENT" =~ ^[A-Za-z0-9_-]+$ ]]; then
     exit 1
 fi
 CAL_DIR="$SCRIPT_DIR/calibration/$ALIGNMENT"
+LAYOUT="${PAIR_LAYOUT:-auto}"
+if [ "$LAYOUT" = auto ]; then
+    LAYOUT=split
+    if [ -f "$CAL_DIR/table_settings.json" ] && [ "$MODE" != measured ]; then LAYOUT=table; fi
+fi
+PREFIX="$MODE"
+case "$LAYOUT" in
+    split) ;;
+    table) PREFIX="${MODE}_table" ;;
+    *) echo "PAIR_LAYOUT must be auto, split or table" >&2; exit 1 ;;
+esac
 export APP_SRV_PAIR_FULL_RES="${PAIR_FULL_RES:-1}"
 case "$APP_SRV_PAIR_FULL_RES" in
-    1) MESH="${MODE}_fullres_mesh.bin" ;;
-    0) MESH="${MODE}_mesh.bin" ;;
+    1) MESH="${PREFIX}_fullres_mesh.bin" ;;
+    0) MESH="${PREFIX}_mesh.bin" ;;
     *) echo "PAIR_FULL_RES must be 0 or 1" >&2; exit 1 ;;
 esac
 export APP_SRV_PAIR_LUT="$CAL_DIR/$MESH"
-export APP_SRV_PAIR_BLEND="$CAL_DIR/${MODE}_blend.bin"
+export APP_SRV_PAIR_BLEND="$CAL_DIR/${PREFIX}_blend.bin"
 test -s "$APP_SRV_PAIR_LUT"
 test -s "$APP_SRV_PAIR_BLEND"
 if [ "$MODE" = bowl ]; then
@@ -41,7 +52,21 @@ if (root/'bowl_blend.bin').read_bytes() != (root/'lens_blend.bin').read_bytes():
     sys.exit('Flat and bowl blend weights differ. Rebuild/redeploy the matched pair.')
 PY
 fi
-echo "Pair alignment: $ALIGNMENT, warp=$MODE, full-resolution=$APP_SRV_PAIR_FULL_RES"
+if [ "$LAYOUT" = table ]; then
+    python3 - "$CAL_DIR" <<'PY'
+import hashlib
+import json
+from pathlib import Path
+import sys
+
+root = Path(sys.argv[1])
+settings = json.loads((root/'table_settings.json').read_text())
+for name, digest in settings['hashes'].items():
+    if Path(name).name != name or hashlib.sha256((root/name).read_bytes()).hexdigest() != digest:
+        sys.exit(f'Stale or damaged table mapping: {name}. Rebuild/redeploy before switching.')
+PY
+fi
+echo "Pair alignment: $ALIGNMENT, warp=$MODE, layout=$LAYOUT, full-resolution=$APP_SRV_PAIR_FULL_RES"
 if [ "${1:-}" = --check ]; then
     exit 0
 fi

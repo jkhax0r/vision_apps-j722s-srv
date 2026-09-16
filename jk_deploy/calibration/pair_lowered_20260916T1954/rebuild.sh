@@ -9,3 +9,5 @@ python3 "$HERE/../pair_final_20260908T184734Z/test_meshes.py" --session "$HERE"
 bash "$TOOLS/build_bowl_helper.sh"
 python3 "$TOOLS/make_bowl.py" --session "$HERE" --height-mm 50
 python3 "$TOOLS/test_bowl.py" --session "$HERE"
+python3 "$HERE/make_table.py"
+python3 "$HERE/test_table.py"

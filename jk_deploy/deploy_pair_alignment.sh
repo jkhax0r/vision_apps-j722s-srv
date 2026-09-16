@@ -19,6 +19,12 @@ if [ -f "$CAL_DIR/bowl_settings.json" ]; then
     FILES+=("$CAL_DIR/bowl_settings.json" "$CAL_DIR/bowl_mesh.bin"
             "$CAL_DIR/bowl_fullres_mesh.bin" "$CAL_DIR/bowl_blend.bin")
 fi
+if [ -f "$CAL_DIR/table_settings.json" ]; then
+    FILES+=("$CAL_DIR/table_settings.json" "$CAL_DIR/table_bounds.json"
+            "$CAL_DIR/lens_table_mesh.bin" "$CAL_DIR/lens_table_fullres_mesh.bin"
+            "$CAL_DIR/lens_table_blend.bin" "$CAL_DIR/bowl_table_mesh.bin"
+            "$CAL_DIR/bowl_table_fullres_mesh.bin" "$CAL_DIR/bowl_table_blend.bin")
+fi
 for file in "${FILES[@]}"; do
     test -s "$file" || { echo "Missing $file" >&2; exit 1; }
 done
@@ -37,6 +43,9 @@ install -d "$CAL_DIR"
 install -m 0644 "$STAGE/"*.bin "$STAGE/alignment.json" "$CAL_DIR/"
 if [ -f "$STAGE/bowl_settings.json" ]; then
     install -m 0644 "$STAGE/bowl_settings.json" "$CAL_DIR/"
+fi
+if [ -f "$STAGE/table_settings.json" ]; then
+    install -m 0644 "$STAGE/table_settings.json" "$STAGE/table_bounds.json" "$CAL_DIR/"
 fi
 install -m 0755 "$STAGE/run_gmsl_pair_test.sh" "$STAGE/run_gmsl_pair_calibrated.sh" \
     "$STAGE/switch_gmsl_pair_view.sh" "$DEST/"
