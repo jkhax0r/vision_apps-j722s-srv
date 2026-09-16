@@ -166,7 +166,7 @@
       "y": -6.75,
       "width": 22.5,
       "height": 28.125,
-      "feather_cells": 1.0,
+      "feather_cells": 0.125,
       "seam_x": -6.5,
       "uncovered_fraction": 0.0
     },
@@ -176,7 +176,7 @@
       "y": -6.75,
       "width": 22.5,
       "height": 28.125,
-      "feather_cells": 1.0,
+      "feather_cells": 0.125,
       "seam_x": -6.5,
       "uncovered_fraction": 0.0
     }

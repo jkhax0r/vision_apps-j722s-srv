@@ -41,7 +41,31 @@ The corrected pane crops to x=-17.75, y=-6.75, width=22.5, height=28.125 grid
 cells, approximately 613 x 766 mm at the assumed pitch. This is a subset of
 the plywood, selected to avoid uncovered corners. The offline validity check
 has zero uncovered output pixels for both methods. The raw panes retain each
-camera's full field of view. The blend is one cell wide at x=-6.5.
+camera's full field of view. The seam remains at x=-6.5.
+
+The current narrow-blend experiment uses 0.125 grid cells rather than the
+original 1.0. The nominal fade is 3.56 display pixels; the GPU interpolates
+the sampled weights across one mesh interval, approximately 4.7 pixels.
+Only blend weights change, not the camera poses, source-coordinate meshes,
+crop, resolution or executable. This reduces cross-fading/ghosting but can
+make parallax-induced object clipping and exposure differences more abrupt.
+
+To regenerate the original nominal 28.4-pixel blend instead:
+
+```sh
+PAIR_BLEND_CELLS=1 bash jk_deploy/calibration/pair_plywood_20260916/rebuild.sh
+```
+
+Before the narrow experiment, the target calibration directory was copied
+to `/opt/jk-ti-srv-pair/calibration/plywood_20260916_wide`. After stopping
+the current instance, it can be run with `PAIR_ALIGNMENT=plywood_20260916_wide`.
+
+Narrow-blend verification: both methods' camera fits and source-coordinate
+meshes remained byte-identical; blend normalization and single-interval
+transition checks passed. A 60-frame DUT run exited cleanly at 15.11 fps;
+the inspected GPU render is `live_narrow_probe.png` (local only). The narrow
+version was left running as `jk-ti-srv-pair`, writing its final frame to
+`/tmp/jk-plywood-narrow-live.raw` when stopped.
 
 ## Reproduce
 
