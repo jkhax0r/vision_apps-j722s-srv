@@ -18,6 +18,9 @@ class WorkerTests(unittest.TestCase):
         self.temp = tempfile.TemporaryDirectory()
         self.addCleanup(self.temp.cleanup)
         self.root = Path(self.temp.name)
+        pause = patch.object(worker, 'PreviewPause')
+        self.pause = pause.start()
+        self.addCleanup(pause.stop)
         # Target /tmp is a small tmpfs; synthetic fixtures do not need 3 GiB.
         space = patch.object(worker.shutil, 'disk_usage', return_value=SimpleNamespace(free=10*1024**3))
         space.start()
@@ -74,6 +77,11 @@ class WorkerTests(unittest.TestCase):
         active = json.loads((self.runtime/"active_table_calibration.json").read_text())
         self.assertEqual(active["previous_preset"], str(self.previous))
         self.install.assert_called_once()
+        self.assertEqual(self.pause.return_value.__exit__.call_count, 3)
+        self.assertEqual(status['performance']['motion_mode'], 'sampled')
+        self.assertIn('--persistent', status['commands'][0])
+        self.assertIn('--cache', status['commands'][1])
+        self.assertIn('--defer-bake', status['commands'][-2])
 
     def test_rejected_fit_never_installs(self):
         self.calibrate.write_text("import sys\nfrom pathlib import Path\np=Path(sys.argv[2]); p.mkdir()\n"
@@ -82,6 +90,7 @@ class WorkerTests(unittest.TestCase):
         self.assertEqual(code, 1)
         self.assertEqual(status["reason"], "Cameras moved")
         self.install.assert_not_called()
+        self.assertEqual(self.pause.return_value.__exit__.call_count, 3)
         self.assertFalse((self.runtime/"active_table_calibration.json").exists())
 
     def test_scientific_subprocesses_disable_broken_opencl(self):

@@ -30,7 +30,7 @@ def save_report(output, report):
 
 
 def calibrate(source, output, front=0, marker_ids=None, geometry=DEFAULT_GEOMETRY, inset_percent=.5,
-              deployment_policy="standalone", detected_corners=None, reference=None):
+              deployment_policy="standalone", detected_corners=None, reference=None, defer_bake=False):
     # Never reuse a previous session, including a failed one.
     output.mkdir(parents=True, exist_ok=False)
     (output/".gitignore").write_text("/captures/\n*.png\n*.uyvy\n")
@@ -54,6 +54,8 @@ def calibrate(source, output, front=0, marker_ids=None, geometry=DEFAULT_GEOMETR
             tail = (output/"calibration.log").read_text()[-4000:]
             raise ValueError(f"{script} failed. Inspect calibration.log.\n{tail}")
     try:
+        if defer_bake and deployment_policy != 'repeat-child':
+            raise ValueError('Only independently validated repeat children may defer artifact generation')
         if marker_ids is not None and (len(set(marker_ids)) != 4 or any(n not in range(50) for n in marker_ids)):
             raise ValueError("Specify four distinct DICT_4X4_50 IDs in 0..49")
         shutil.copy2(geometry, output/"holder_geometry.json")
@@ -115,9 +117,9 @@ def calibrate(source, output, front=0, marker_ids=None, geometry=DEFAULT_GEOMETR
             shutil.copy2(reference/"holder_geometry.json", output/"holder_geometry.json")
             for key in ("capture_order", "corner_ids_clockwise_from_front_right", "marker_selection", "clean_refinement"):
                 report[key] = config[key]
-        run("bake_floor.py", output)
+        run("bake_floor.py", output, *(["--validate-only"] if defer_bake else []))
         result = json.loads((output/"calibration.json").read_text())
-        report.update(status="passed", artifact_sha256=result["sha256"],
+        report.update(status="passed", artifact_sha256=result["sha256"], artifacts_deferred=defer_bake,
                       crop_quality=result["crop_quality"], crop_coverage=result["crop_coverage"],
                       heldout_grid_errors=[m["heldout_grid_error"] for m in result["cameras"]])
     except (Exception, KeyboardInterrupt) as error:

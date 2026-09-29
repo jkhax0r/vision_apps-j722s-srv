@@ -45,7 +45,9 @@ movement warning. Moving through the background is allowed. Moving the rig or
 covering the targets can still blur the average or produce inconsistent geometry,
 which the separate calibration-validity checks may reject.
 
-The preview pauses for capture and returns while calculation runs. Only a
+The preview pauses for capture and freezes during marker checks and calculation
+to give the CPU to calibration. The touch UI remains active; live video returns
+while waiting for corner removal and after completion, cancellation, or failure. Only a
 validated two-stage, three-pass result is applied. Rejected fits leave the current preset
 running; an application failure attempts to restore that preset. Loss of power
 or SIGKILL cannot execute cleanup; reboot selects the last committed preset.
@@ -184,19 +186,21 @@ calibrates **three passes**. It reduces temporal brightness variation in static
 calibration images; it does not smooth the live display or guarantee removal of
 lighting flicker. Correlated flicker/banding can remain after averaging.
 
-Install `capture_table_bursts.py` alongside the existing private target runtime
-(already installed on this Flex). It requires only the target's Python standard
-library and the existing V4L2/media tools. Then run on target:
+The active private tool bundle includes `capture_table_bursts.py` and its
+`persistent_bursts.py` helper. Capture requires only the target's Python standard
+library and existing V4L2/media tools. For a manual capture on target:
 
 ```sh
-python3 /opt/jk-ti-srv-flex/capture_table_bursts.py \
+TOOLS=$(dirname "$(readlink -f /opt/jk-ti-srv-flex/run_calibration_ui.sh)")/..
+python3 "$TOOLS/capture_table_bursts.py" \
   /root/jk-calibration-captures/show_bursts_01 \
-  --resume /root/run_flex_markers.sh
+  --persistent --resume /root/run_flex_markers.sh
 ```
 
 This stops the preview, configures the four native inputs, discards 60 warmup
-frames before each burst, and captures each camera sequentially. It waits one
-second between passes. Keep the entire scene still, including hands and cables,
+frames once per camera, and collects that camera's three bursts through the same
+open stream before moving to the next camera. It discards frames for one second
+between bursts, using elapsed time rather than assuming FPS. Keep the scene still,
 until complete. `--resume` specifies the actual preset to restore, including
 after a capture failure; omit it to leave the preview stopped. SIGKILL, loss of
 power, or a failing resume launcher cannot be automatically recovered.
@@ -204,13 +208,15 @@ power, or a failing resume launcher cannot be automatically recovered.
 Defaults save 144 frames, about **664 MB / 633 MiB** of raw data. Options:
 `--frames 6..32`, `--passes 3..5`, `--warmup 0..300`, `--gap 0..30` seconds.
 Frame rate is whatever the camera delivers, not assumed from requested FPS.
+Omit `--persistent` to benchmark the original restart-per-burst capture path.
 
 Copy the complete directory, including `burst_manifest.json`, to the workstation:
 
 ```sh
 env PYTHONPATH=/tmp/jk-opencv4:/tmp/jk-scipy python3 \
   jk_deploy/flex/calibrate_repeated.py /path/to/show_bursts_01 \
-  jk_deploy/flex/sessions/show_bursts_01
+  jk_deploy/flex/sessions/show_bursts_01 \
+  --workers 4 --defer-bake --motion-mode sampled --cache /path/to/average_cache
 ```
 
 The same `--front-input`, `--marker-ids`, `--geometry`, and `--inset-percent`
@@ -218,8 +224,12 @@ options apply. All output paths must be new.
 
 Processing is deliberately conservative:
 
-1. Check every burst frame against its reference for feature motion and local
-   texture changes, recording warnings only. Brightness normalization is used
+1. Check representative burst frames against their reference for feature motion
+   and local texture changes, recording warnings only. For 12-frame bursts,
+   frame indices 3, 6, 9 and 11 are checked against frame 0; `--motion-mode all`
+   retains the older every-frame diagnostics. Sampling can miss brief movement
+   between checks; it does not change the average or geometric validation.
+   Brightness normalization is used
    only for these diagnostics. Stalled/duplicated or malformed bursts still fail.
 2. Average all captured frames arithmetically, at native resolution. No frames
    are discarded for movement and no registration/warping hides camera movement.
@@ -234,6 +244,16 @@ Processing is deliberately conservative:
 6. Only after all comparisons pass, select the most representative pass (lowest
    summed disagreement with the others). Do not average unrelated calibration
    matrices or silently pick a lucky pass from a failed set.
+
+Touch CAL uses up to four independent CPU workers with bounded OpenCV threads
+and a memory-based worker cap. All three fits still receive held-out and crop
+coverage checks. Meshes and diagnostic previews are exported only for the
+selected fit of each stage; the saved homography is reused without refitting.
+A content-addressed average cache is shared with the earlier marker checks.
+Raw-frame hashes, algorithm/dependency versions, motion mode, and image/quality
+checksums protect reuse. Invalid caches are rebuilt from the original bursts.
+Default CLI options retain the serial, every-frame, export-every-pass path for
+comparison; Touch CAL explicitly enables the optimized flags above.
 
 Initial motion warning thresholds are 0.75 px median and 2 px p95 at native
 resolution; local texture changes over 6% of tested tiles also produce a warning.

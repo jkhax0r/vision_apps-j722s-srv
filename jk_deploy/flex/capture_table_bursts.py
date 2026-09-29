@@ -9,6 +9,8 @@ import signal
 import subprocess
 import time
 
+from persistent_bursts import capture_bursts
+
 FRAME_BYTES = 1920*1200*2
 
 
@@ -16,7 +18,7 @@ def utc():
     return datetime.now(timezone.utc).isoformat()
 
 
-def capture(destination, runtime, passes=3, frames=12, warmup=60, gap=1., resume=None):
+def capture(destination, runtime, passes=3, frames=12, warmup=60, gap=1., resume=None, persistent=False):
     if not 3 <= passes <= 5 or not 6 <= frames <= 32 or not 0 <= warmup <= 300 or not 0 <= gap <= 30:
         raise ValueError("Use 3..5 passes, 6..32 frames, 0..300 warmup frames, and a 0..30 second gap")
     if not runtime.joinpath("run_flex_stitch.sh").is_file():
@@ -31,6 +33,7 @@ def capture(destination, runtime, passes=3, frames=12, warmup=60, gap=1., resume
     manifest = {"schema_version": 1, "status": "capturing", "started_utc": utc(),
                 "width": 1920, "height": 1200, "format": "UYVY", "frames_per_burst": frames,
                 "warmup_frames": warmup, "gap_seconds": gap, "passes": [], "commands": []}
+    manifest['stream_policy'] = 'persistent-per-camera' if persistent else 'restart-each-burst'
     def run(command, log=None, timeout=45):
         manifest["commands"].append(list(map(str, command)))
         result = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
@@ -47,6 +50,32 @@ def capture(destination, runtime, passes=3, frames=12, warmup=60, gap=1., resume
         run(["env", "CAM_WIDTH=1920", "CAM_HEIGHT=1200", str(runtime/"run_flex_four.sh"), "configure"],
             destination/"configure.log")
         run(["media-ctl", "-d", "/dev/media0", "-p"], destination/"topology.txt")
+        if persistent:
+            for p in range(passes):
+                directory = destination/f'pass{p+1:02d}'
+                directory.mkdir()
+                manifest['passes'].append(dict(directory=directory.name, inputs=[]))
+            for i in range(4):
+                device = run(['media-ctl', '-d', '/dev/media0', '-e',
+                              f'30102000.ticsi2rx context {i+1}']).strip()
+                paths = [destination/item['directory']/f'input{i}.uyvy' for item in manifest['passes']]
+                format_text = run(['v4l2-ctl', '-d', device, '--get-fmt-video'])
+                for path in paths:
+                    path.with_suffix('.format.txt').write_text(format_text)
+                command = ['v4l2-ctl', '-d', device, '--stream-mmap=4', f'--stream-skip={warmup}',
+                           '--stream-count=0', '--stream-to=-']
+                manifest['commands'].append(command)
+                print(f'Capturing camera {i+1}: one warmup, {passes} bursts', flush=True)
+                observations = capture_bursts(command, paths, frames, FRAME_BYTES, gap,
+                                              destination/f'input{i}.capture.log')
+                for item, observation in zip(manifest['passes'], observations):
+                    if observation['bytes'] != frames*FRAME_BYTES:
+                        raise ValueError(f'Input {i}: incomplete persistent burst')
+                    item.setdefault('started_utc', observation['started_utc'])
+                    item['finished_utc'] = observation['finished_utc']
+                    item['inputs'].append(dict(input=i, device=device, **observation))
+            manifest['status'] = 'complete'
+            return
         for p in range(passes):
             directory = destination/f"pass{p+1:02d}"
             directory.mkdir()
@@ -94,12 +123,13 @@ def main():
     parser.add_argument("--warmup", type=int, default=60)
     parser.add_argument("--gap", type=float, default=1.)
     parser.add_argument("--resume", type=Path, help="Existing launcher to restore, including on capture failure")
+    parser.add_argument('--persistent', action='store_true', help='Warm each camera once for all bursts')
     args = parser.parse_args()
     def interrupted(signum, frame):
         raise KeyboardInterrupt(f"Signal {signum}")
     signal.signal(signal.SIGTERM, interrupted)
     try:
-        capture(args.output, args.runtime, args.passes, args.frames, args.warmup, args.gap, args.resume)
+        capture(args.output, args.runtime, args.passes, args.frames, args.warmup, args.gap, args.resume, args.persistent)
     except (Exception, KeyboardInterrupt) as error:
         parser.exit(1, f"Capture failed: {error}\n")
     print(f"Complete: {args.output}; keep the raw bursts for diagnosis.")

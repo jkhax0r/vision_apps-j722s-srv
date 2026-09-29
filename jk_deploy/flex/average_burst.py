@@ -63,10 +63,13 @@ def motion_diagnostic(reference, frame):
         return {"passed": False, "warning": str(error)}
 
 
-def average_frames(frames):
+def average_frames(frames, motion_mode="all"):
     count = len(frames)
     if not 6 <= count <= 32:
         raise ValueError("Need 6..32 frames per burst")
+    if motion_mode not in ("all", "sampled"):
+        raise ValueError("Motion mode must be all or sampled")
+    checked = set(range(1, count)) if motion_mode == "all" else {count//4, count//2, 3*count//4, count-1}
     reference = frames[0]
     if reference.shape != (1200, 1920, 3) or reference.dtype != np.uint8:
         raise ValueError("Need native 1920x1200 uint8 BGR frames")
@@ -76,7 +79,7 @@ def average_frames(frames):
         if frame.shape != reference.shape or frame.dtype != np.uint8:
             raise ValueError("Burst frame dimensions/types changed")
         signatures.add(hashlib.sha256(frame.tobytes()).hexdigest())
-        if i:
+        if i in checked:
             observations.append(dict(frame=i, **motion_diagnostic(reference, frame)))
         total += frame
         luma.append(float(cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY).mean()))
@@ -86,14 +89,15 @@ def average_frames(frames):
     return averaged, {"frames": count, "distinct_frames": len(signatures), "frame_mean_luma": luma,
                       "mean_luma_peak_to_peak": max(luma)-min(luma), "motion": observations,
                       "motion_limits": DEFAULT_LIMITS, "motion_policy": "warn_only",
+                      "motion_mode": motion_mode, "motion_checked_frames": sorted(checked),
                       "method": "Arithmetic mean of unregistered BGR frames"}
 
 
-def average_raw(path, count):
+def average_raw(path, count, motion_mode="all"):
     path = Path(path)
     if not 6 <= count <= 32 or path.stat().st_size != count*FRAME_BYTES:
         raise ValueError(f"Wrong raw burst length: {path}")
     raw = np.memmap(path, dtype=np.uint8, mode="r", shape=(count, 1200, 1920, 2))
     # At most 32 converted frames (~211 MiB); raw data stays memory mapped.
     frames = [cv2.cvtColor(frame, cv2.COLOR_YUV2BGR_UYVY) for frame in raw]
-    return average_frames(frames)
+    return average_frames(frames, motion_mode)

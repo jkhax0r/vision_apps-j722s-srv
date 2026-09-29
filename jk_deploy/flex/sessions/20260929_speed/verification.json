@@ -1,0 +1,134 @@
+{
+  "marked": {
+    "four_mesh.bin": true,
+    "four_blend.bin": true,
+    "stitched.png": true
+  },
+  "clear": {
+    "four_mesh.bin": true,
+    "four_blend.bin": true,
+    "stitched.png": true
+  },
+  "capture_distinct_frames": [
+    {
+      "mode": "legacy",
+      "burst": "capture_legacy/pass01/input0.uyvy",
+      "distinct": 12
+    },
+    {
+      "mode": "legacy",
+      "burst": "capture_legacy/pass01/input1.uyvy",
+      "distinct": 12
+    },
+    {
+      "mode": "legacy",
+      "burst": "capture_legacy/pass01/input2.uyvy",
+      "distinct": 12
+    },
+    {
+      "mode": "legacy",
+      "burst": "capture_legacy/pass01/input3.uyvy",
+      "distinct": 12
+    },
+    {
+      "mode": "legacy",
+      "burst": "capture_legacy/pass02/input0.uyvy",
+      "distinct": 12
+    },
+    {
+      "mode": "legacy",
+      "burst": "capture_legacy/pass02/input1.uyvy",
+      "distinct": 12
+    },
+    {
+      "mode": "legacy",
+      "burst": "capture_legacy/pass02/input2.uyvy",
+      "distinct": 12
+    },
+    {
+      "mode": "legacy",
+      "burst": "capture_legacy/pass02/input3.uyvy",
+      "distinct": 12
+    },
+    {
+      "mode": "legacy",
+      "burst": "capture_legacy/pass03/input0.uyvy",
+      "distinct": 12
+    },
+    {
+      "mode": "legacy",
+      "burst": "capture_legacy/pass03/input1.uyvy",
+      "distinct": 12
+    },
+    {
+      "mode": "legacy",
+      "burst": "capture_legacy/pass03/input2.uyvy",
+      "distinct": 12
+    },
+    {
+      "mode": "legacy",
+      "burst": "capture_legacy/pass03/input3.uyvy",
+      "distinct": 12
+    },
+    {
+      "mode": "persistent",
+      "burst": "capture_persistent/pass01/input0.uyvy",
+      "distinct": 12
+    },
+    {
+      "mode": "persistent",
+      "burst": "capture_persistent/pass01/input1.uyvy",
+      "distinct": 12
+    },
+    {
+      "mode": "persistent",
+      "burst": "capture_persistent/pass01/input2.uyvy",
+      "distinct": 12
+    },
+    {
+      "mode": "persistent",
+      "burst": "capture_persistent/pass01/input3.uyvy",
+      "distinct": 12
+    },
+    {
+      "mode": "persistent",
+      "burst": "capture_persistent/pass02/input0.uyvy",
+      "distinct": 12
+    },
+    {
+      "mode": "persistent",
+      "burst": "capture_persistent/pass02/input1.uyvy",
+      "distinct": 12
+    },
+    {
+      "mode": "persistent",
+      "burst": "capture_persistent/pass02/input2.uyvy",
+      "distinct": 12
+    },
+    {
+      "mode": "persistent",
+      "burst": "capture_persistent/pass02/input3.uyvy",
+      "distinct": 12
+    },
+    {
+      "mode": "persistent",
+      "burst": "capture_persistent/pass03/input0.uyvy",
+      "distinct": 12
+    },
+    {
+      "mode": "persistent",
+      "burst": "capture_persistent/pass03/input1.uyvy",
+      "distinct": 12
+    },
+    {
+      "mode": "persistent",
+      "burst": "capture_persistent/pass03/input2.uyvy",
+      "distinct": 12
+    },
+    {
+      "mode": "persistent",
+      "burst": "capture_persistent/pass03/input3.uyvy",
+      "distinct": 12
+    }
+  ]
+}

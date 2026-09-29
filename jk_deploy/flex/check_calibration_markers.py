@@ -7,17 +7,21 @@ import cv2
 
 from align_markers import camera_ring, validate_marker_views
 from average_burst import average_raw
+from prepare_burst import prepared_burst
 from calibrate_repeated import validate_manifest
 
 
-def check(source, output, marked_check=None):
+def check(source, output, marked_check=None, cache=None, motion_mode='all'):
     manifest = json.loads((source/'burst_manifest.json').read_text())
     passes, count = validate_manifest(manifest)
     detector = cv2.aruco.ArucoDetector(cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_4X4_50))
     views = []
     for i in range(4):
         print(f'Checking corner markers: camera {i+1}', flush=True)
-        frame, _ = average_raw(source/passes[0]/f'input{i}.uyvy', count)
+        if cache is None and motion_mode == 'all':
+            frame, _ = average_raw(source/passes[0]/f'input{i}.uyvy', count)
+        else:
+            frame, _, _ = prepared_burst(source/passes[0]/f'input{i}.uyvy', count, cache, motion_mode)
         corners, ids, _ = detector.detectMarkers(frame)
         views.append((corners, ids, frame.shape))
     if marked_check is None:
@@ -41,9 +45,11 @@ def main():
     parser.add_argument('source', type=Path)
     parser.add_argument('output', type=Path)
     parser.add_argument('--marked-check', type=Path)
+    parser.add_argument('--cache', type=Path)
+    parser.add_argument('--motion-mode', choices=('all', 'sampled'), default='all')
     args = parser.parse_args()
     try:
-        check(args.source, args.output, args.marked_check)
+        check(args.source, args.output, args.marked_check, args.cache, args.motion_mode)
     except Exception as error:
         args.output.write_text(json.dumps({'passed': False, 'reason': str(error)}, indent=2)+'\n')
         parser.exit(1, f'Marker check failed: {error}\n')

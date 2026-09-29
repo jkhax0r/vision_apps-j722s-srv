@@ -1,5 +1,14 @@
 # Calibration Reliability Review - September 29, 2026
 
+## Performance Follow-Up
+
+The five measured speedups retain three independent fits and the final geometry
+checks. Saved-capture processing fell from 13m 49s to 6m 29s on this Flex, with
+byte-identical mesh/blend/preview outputs. Native capture also passed the
+persistent-stream comparison. The local suite has 184 tests (162 passed, 22
+Qt-only skipped); 43 selected tests passed on the target. See the
+[benchmark and regression record](sessions/20260929_speed/README.md).
+
 ## Later Checker-Coverage Failure
 
 Job `20260929T214533Z_92c6cb` exposed a separate detector limitation: sparse

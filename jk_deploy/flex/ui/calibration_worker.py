@@ -19,6 +19,7 @@ import time
 TOOLS = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(TOOLS))
 from stage_table import FILES, validate_candidate
+from calibration_runtime import PreviewPause, available_workers
 try:
     from .capture_recovery import saved_capture_source
 except ImportError:
@@ -181,31 +182,39 @@ def run_job(job, runtime, support, reuse=None):
         status["previous_preset"] = str(preset)
         captures = saved_capture_source(reuse) if reuse is not None else job
         status['capture_source'] = str(captures)
+        workers = available_workers()
+        status['performance'] = dict(workers=workers, motion_mode='sampled', defer_bake=True,
+                                      persistent_capture=True, pause_preview=True)
+        common = ['--cache', job/'average_cache', '--motion-mode', 'sampled']
+        fitting = ['--workers', str(workers), '--defer-bake', *common]
         resume.write_text("#!/bin/bash\nset -euo pipefail\nexport FLEX_CALIBRATION_DIR="+shlex.quote(str(preset))+
                           "\nexport FLEX_COMPARE=1\nexport CAMERA_ORDER="+shlex.quote(order)+
                           "\nexec "+shlex.quote(str(runtime/"run_flex_stitch.sh"))+"\n")
         resume.chmod(0o755)
         if reuse is None:
-            command([sys.executable, TOOLS/"capture_table_bursts.py", job/"raw", "--runtime", runtime, "--resume", resume],
+            command([sys.executable, TOOLS/"capture_table_bursts.py", job/"raw", "--runtime", runtime, "--resume", resume, '--persistent'],
                     "Capturing marked table", 600)
             latest_report = job/"marked_check.json"
-            command([sys.executable, TOOLS/"check_calibration_markers.py", job/"raw", latest_report],
-                    "Checking marked table", 180)
+            with PreviewPause():
+                command([sys.executable, TOOLS/"check_calibration_markers.py", job/"raw", latest_report, *common],
+                        "Checking marked table", 180)
             wait_started = time.monotonic()
             wait_for_removal(job, update)
             status["timings_seconds"]["Waiting for corner removal"] = round(time.monotonic()-wait_started, 1)
             latest_report = None
-            command([sys.executable, TOOLS/"capture_table_bursts.py", job/"raw_clear", "--runtime", runtime, "--resume", resume],
+            command([sys.executable, TOOLS/"capture_table_bursts.py", job/"raw_clear", "--runtime", runtime, "--resume", resume, '--persistent'],
                     "Capturing clear table", 600)
             latest_report = job/"clear_check.json"
-            command([sys.executable, TOOLS/"check_calibration_markers.py", job/"raw_clear", latest_report,
-                     "--marked-check", job/"marked_check.json"], "Checking clear table", 180)
-        latest_report = job/"marked_result/report.json"
-        command([sys.executable, TOOLS/"calibrate_repeated.py", captures/"raw", job/"marked_result"],
-                "Calculating marked reference", 2400)
-        latest_report = job/"result/report.json"
-        command([sys.executable, TOOLS/"calibrate_repeated.py", captures/"raw_clear", job/"result",
-                 "--reference", job/"marked_result"], "Refining exposed corners", 2400)
+            with PreviewPause():
+                command([sys.executable, TOOLS/"check_calibration_markers.py", job/"raw_clear", latest_report,
+                         "--marked-check", job/"marked_check.json", *common], "Checking clear table", 180)
+        with PreviewPause():
+            latest_report = job/"marked_result/report.json"
+            command([sys.executable, TOOLS/"calibrate_repeated.py", captures/"raw", job/"marked_result", *fitting],
+                    "Calculating marked reference", 2400)
+            latest_report = job/"result/report.json"
+            command([sys.executable, TOOLS/"calibrate_repeated.py", captures/"raw_clear", job/"result",
+                     "--reference", job/"marked_result", *fitting], "Refining exposed corners", 2400)
         report = json.loads((job/"result/report.json").read_text())
         warnings = report.get("motion_warnings", [])+report.get("marker_stage_motion_warnings", [])
         messages = list(report.get("refinement_warnings", []))

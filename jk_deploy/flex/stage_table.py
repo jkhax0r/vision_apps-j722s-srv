@@ -24,6 +24,8 @@ def validate_candidate(session):
     config = json.loads((session/"calibration.json").read_text())
     if report.get("status") != "passed" or config.get("schema_version") != 2:
         raise ValueError("Only passed schema-2 candidates can be staged")
+    if report.get('artifacts_deferred') or config.get('artifacts_deferred'):
+        raise ValueError('Deferred artifacts cannot be staged')
     if report.get("simulated_input"):
         raise ValueError("Simulated test input cannot be staged as a live calibration")
     if report.get("deployment_policy") == "repeat-child":

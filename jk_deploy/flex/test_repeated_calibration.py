@@ -232,6 +232,43 @@ class MappingTests(unittest.TestCase):
 
 
 class CaptureTests(unittest.TestCase):
+    def test_persistent_capture_warms_each_camera_only_once(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root/'run_flex_stitch.sh').touch()
+            resume = root/'resume.sh'
+            resume.touch()
+            def run(command, **kwargs):
+                return subprocess.CompletedProcess(command, 0, '/dev/video2\n')
+            def bursts(command, paths, frames, size, gap, log):
+                observations = []
+                for path in paths:
+                    with path.open('wb') as stream:
+                        stream.truncate(frames*size)
+                    observations.append(dict(bytes=frames*size, started_utc='start', finished_utc='end'))
+                return observations
+            with patch('capture_table_bursts.subprocess.run', side_effect=run) as commands, \
+                 patch('capture_table_bursts.capture_bursts', side_effect=bursts) as streams:
+                capture(root/'bursts', root, frames=6, resume=resume, persistent=True)
+            self.assertEqual(streams.call_count, 4)
+            self.assertEqual(commands.call_args_list[-1].args[0], [str(resume)])
+            manifest = json.loads((root/'bursts/burst_manifest.json').read_text())
+            self.assertEqual(validate_manifest(manifest), (['pass01', 'pass02', 'pass03'], 6))
+            self.assertEqual([len(p['inputs']) for p in manifest['passes']], [4, 4, 4])
+
+    def test_persistent_capture_error_restores_preview(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root/'run_flex_stitch.sh').touch()
+            resume = root/'resume.sh'
+            resume.touch()
+            with patch('capture_table_bursts.subprocess.run', return_value=subprocess.CompletedProcess([], 0, '/dev/video2\n')) as commands, \
+                 patch('capture_table_bursts.capture_bursts', side_effect=ValueError('short burst')), \
+                 self.assertRaisesRegex(ValueError, 'short burst'):
+                capture(root/'bursts', root, frames=6, resume=resume, persistent=True)
+            self.assertEqual(commands.call_args_list[-1].args[0], [str(resume)])
+            self.assertEqual(json.loads((root/'bursts/burst_manifest.json').read_text())['status'], 'failed')
+
     def test_complete_capture_has_three_passes_and_restores_preview(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)

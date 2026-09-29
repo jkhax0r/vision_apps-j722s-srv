@@ -2,6 +2,7 @@
 """Fit and inspect a stationary four-camera checkerboard floor session."""
 import argparse
 import json
+import os
 from itertools import product
 from pathlib import Path
 import sys
@@ -14,7 +15,7 @@ sys.path.insert(0, str(ROOT.parent / "calibration/lens_20260908"))
 from fit_intrinsics import square_lattice
 from make_lut import load_lenses, project_lens
 
-cv2.setNumThreads(4)
+cv2.setNumThreads(int(os.environ.get('JK_CAL_THREADS', '4')))
 MODELS, _ = load_lenses()
 K = np.mean([m["K"] for m in MODELS], axis=0)
 D = np.mean([m["D"] for m in MODELS], axis=0)

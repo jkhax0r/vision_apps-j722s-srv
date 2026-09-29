@@ -166,24 +166,30 @@ def preview(cameras, config, path):
     cv2.imwrite(str(path / "comparison.png"), np.hstack((left, output)))
 
 
-def main():
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("session", type=Path)
-    args = parser.parse_args()
-    config = json.loads((args.session / "session.json").read_text())
+def bake(session, validate_only=False, use_fitted=False):
+    config = json.loads((session / ("calibration.json" if use_fitted else "session.json")).read_text())
+    if use_fitted:
+        config["aligned_models"] = config["cameras"]
     if "aligned_models" in config:
         models = config["aligned_models"]
         if [m["input"] for m in models] != list(range(4)):
             raise ValueError("Aligned models must be in camera input order 0,1,2,3")
     else:
-        models = align(json.loads((args.session / "floor_fits.json").read_text()), config)
+        models = align(json.loads((session / "floor_fits.json").read_text()), config)
     order = config.get("capture_order", list(range(4)))
     if sorted(order) != list(range(4)):
         raise ValueError("Capture order must be a permutation of 0,1,2,3")
-    cameras = [FloorCamera(args.session, models[i]) for i in order]
+    cameras = [FloorCamera(session, models[i], models[i]["H_global_to_undistorted"] if use_fitted else None) for i in order]
     for camera in cameras:
         camera.model["heldout_grid_error"] = camera.validation()
     crop_coverage = coverage(cameras, config)
+    result = dict(config, cameras=models, capture_order=order, crop_coverage=crop_coverage, comparison_layout=True,
+                  method="Shared lens prior + observed checker-plane homographies and smooth residuals",
+                  limitation="Floor-only mapping, not new lens intrinsics or general 3D reconstruction",
+                  artifacts_deferred=validate_only, sha256={})
+    if validate_only:
+        (session / "calibration.json").write_text(json.dumps(result, indent=2) + "\n")
+        return result
     meshes, blends = [], []
     for q in range(4):
         col, row = np.meshgrid(np.linspace(0, 1, 136), np.linspace(0, 1, 136))
@@ -203,17 +209,24 @@ def main():
     mesh, blend = np.concatenate(meshes), np.concatenate(blends)
     assert mesh.shape == (4*136*136, 7) and blend.shape == (4*136*136, 2)
     assert np.all((blend.sum(1) == 0) | (blend.sum(1) == 255))
-    mesh.tofile(args.session / "four_mesh.bin")
-    blend.tofile(args.session / "four_blend.bin")
-    result = dict(config, cameras=models, capture_order=order, crop_coverage=crop_coverage, comparison_layout=True,
-                  method="Shared lens prior + observed checker-plane homographies and smooth residuals",
-                  limitation="Floor-only mapping, not new lens intrinsics or general 3D reconstruction")
-    result["sha256"] = {name: hashlib.sha256((args.session / name).read_bytes()).hexdigest()
+    mesh.tofile(session / "four_mesh.bin")
+    blend.tofile(session / "four_blend.bin")
+    result["sha256"] = {name: hashlib.sha256((session / name).read_bytes()).hexdigest()
                         for name in ("four_mesh.bin", "four_blend.bin")}
-    (args.session / "calibration.json").write_text(json.dumps(result, indent=2) + "\n")
-    (args.session / "camera_order.txt").write_text(" ".join(map(str, order))+"\n")
-    preview(cameras, config, args.session)
+    (session / "calibration.json").write_text(json.dumps(result, indent=2) + "\n")
+    (session / "camera_order.txt").write_text(" ".join(map(str, order))+"\n")
+    preview(cameras, config, session)
     print(json.dumps(models, indent=2), flush=True)
+    return result
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("session", type=Path)
+    parser.add_argument("--validate-only", action="store_true")
+    parser.add_argument("--use-fitted", action="store_true")
+    args = parser.parse_args()
+    bake(args.session, args.validate_only, args.use_fitted)
 
 
 if __name__ == "__main__":
