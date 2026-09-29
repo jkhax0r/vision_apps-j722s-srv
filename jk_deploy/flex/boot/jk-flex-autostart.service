@@ -1,0 +1,24 @@
+[Unit]
+Description=JK Flex four-camera stitching and calibration controls
+DefaultDependencies=no
+Wants=Ahsoka.Drivers.service Ahsoka.LayerManager.service
+After=ahsoka.target Ahsoka.Drivers.service Ahsoka.Display.service Ahsoka.LayerManager.service
+Before=shutdown.target
+Conflicts=shutdown.target
+StartLimitIntervalSec=0
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+Environment=XDG_RUNTIME_DIR=/tmp/xdg-runtime-dir
+Environment=WAYLAND_DISPLAY=wayland-1
+Environment=PYTHONUNBUFFERED=1
+ExecStart=/usr/bin/python3 /opt/jk-ti-srv-flex/boot/run_boot.py
+ExecStop=/usr/bin/python3 /opt/jk-ti-srv-flex/boot/run_boot.py --stop
+TimeoutStartSec=180
+TimeoutStopSec=110
+Restart=on-failure
+RestartSec=10
+
+[Install]
+WantedBy=ahsoka.target
