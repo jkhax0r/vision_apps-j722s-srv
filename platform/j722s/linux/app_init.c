@@ -212,7 +212,7 @@ static int32_t appCommonInitLocal()
 
         /* This isolated GPU test has no remote-core nodes. Keep descriptor
          * memory/host IPC, without opening absent C7/R5 RPMsg endpoints. */
-        if (getenv("APP_SRV_PAIR_LUT") != NULL)
+        if (getenv("APP_SRV_PAIR_LUT") != NULL || getenv("APP_SRV_FOUR_LUT") != NULL)
         {
             ipc_init_prm.num_cpus = 1;
             ipc_init_prm.enabled_cpu_id_list[0] = APP_IPC_CPU_MPU1_0;

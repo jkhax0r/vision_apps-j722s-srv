@@ -198,6 +198,16 @@ void screen1_draw_vbo(int texYuv)
 
 void screen1_init_vbo()
 {
+	if (getenv("APP_SRV_FOUR_COMPARE") != NULL)
+	{
+		// Rotate only the raw Flex previews 180 degrees from their old presentation.
+		// Stitching and calibration keep the original capture coordinates.
+		for (int vertex = 0; vertex < 4; vertex++)
+		{
+			screen1_mesh[vertex * 5 + 3] = vertex < 2 ? 1.0f : 0.0f;
+			screen1_mesh[vertex * 5 + 4] = vertex == 0 || vertex == 3 ? 1.0f : 0.0f;
+		}
+	}
 	screen1_shader_init(&screen_state1);
 	screen1_init_vertices_vbo(&screen_state1);
 
@@ -207,4 +217,3 @@ void screen1_deinit_vbo()
 {
 	screen1_shader_deinit(&screen_state1);
 }
-

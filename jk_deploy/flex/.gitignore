@@ -1,0 +1,2 @@
+# Native camera bursts are retained offline, not in Git.
+*.uyvy

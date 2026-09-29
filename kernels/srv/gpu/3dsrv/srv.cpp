@@ -443,6 +443,8 @@ int srv_setup(render_state_t *pObj)
 		// Generate the BlendLUT if it wasn't passed
 		pObj->blendLUT3D = malloc(sizeof(int16_t) * POINTS_WIDTH/POINTS_SUBX * POINTS_HEIGHT/POINTS_SUBY * 9 * 2);
 		const char *pair_blend = getenv("APP_SRV_PAIR_BLEND");
+		if(getenv("APP_SRV_FOUR_LUT") != NULL)
+			pair_blend = getenv("APP_SRV_FOUR_BLEND");
 		if(pair_blend != NULL && pair_blend[0] != '\0')
 		{
 			const size_t bytes = QUADRANTS * QUADRANT_SIZE * sizeof(srv_blend_lut_t);

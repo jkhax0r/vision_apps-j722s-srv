@@ -320,11 +320,26 @@ static vx_status VX_CALLBACK tivxGlSrvProcess(
             texProp[2].bufAddr[1] = input_target_ptr[2][1];
             texProp[3].bufAddr[0] = input_target_ptr[3][0];
             texProp[3].bufAddr[1] = input_target_ptr[3][1];
+            if (getenv("APP_SRV_FOUR_LUT") != NULL)
+            {
+                /* ImportHandle updates host/shared pointers, not cached DMA
+                 * FDs in this SDK. Resolve the current V4L2 buffer each frame. */
+                for (i = 0; i < input_desc->num_items; i++)
+                {
+                    texProp[i].dmaBufFd[0] = appMemGetDmaBufFd(
+                        input_target_ptr[i][0], &texProp[i].dmaBufFdOffset[0]);
+                }
+            }
             #endif
 
             for (i = 0; i < input_desc->num_items; i++)
             {
                 texYuv[i] = appEglWindowGetTexYuv(pEglWindowObj, &texProp[i]);
+                if (getenv("APP_SRV_FOUR_LUT") != NULL && texYuv[i] == 0)
+                {
+                    VX_PRINT(VX_ZONE_ERROR, "Four-camera texture import failed for slot %u\n", i);
+                    return VX_FAILURE;
+                }
             }
 
             /* bind framebuffer for this draw

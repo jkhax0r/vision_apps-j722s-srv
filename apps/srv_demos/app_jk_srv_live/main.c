@@ -34,6 +34,7 @@
 #include <TI/video_io_kernels.h>
 #include <render.h>
 #include <utils/app_init/include/app_init.h>
+#include <utils/mem/include/app_mem.h>
 #include "lens_distortion_correction.h"
 #include "srv_common.h"
 #include "core_generate_3dbowl.h"
@@ -61,7 +62,8 @@ extern void tivxPlatformResetObjDescTableInfo(void);
 static volatile sig_atomic_t stop_requested = 0;
 static uint32_t input_width = 640u;
 static uint32_t input_height = 480u;
-static int full_resolution_pair = 0;
+static int native_input = 0;
+static int import_capture = 0;
 
 static void request_stop(int signal_number)
 {
@@ -72,6 +74,8 @@ static void request_stop(int signal_number)
 typedef struct {
     void *start;
     size_t length;
+    int dma_fd;
+    void *imported;
 } CaptureBuffer;
 
 typedef struct {
@@ -92,6 +96,9 @@ typedef struct {
     int stacked_fields;
     int mirror_x;
     int flip_y;
+    int external_image_bound;
+    int frame_held;
+    struct v4l2_buffer held_buffer;
 } Camera;
 
 static const char *default_devices[NUM_CAMERAS] = {
@@ -172,6 +179,7 @@ static int camera_open(Camera *camera, const char *path)
     uint32_t y;
 
     memset(camera, 0, sizeof(*camera));
+    for (i = 0; i < CAP_BUFFERS; i++) camera->buffers[i].dma_fd = -1;
     camera->path = path;
     camera->fd = open(path, O_RDWR | O_NONBLOCK);
     if (camera->fd < 0)
@@ -221,16 +229,21 @@ static int camera_open(Camera *camera, const char *path)
     camera->stacked_fields = strstr(path, "analog") != NULL;
     camera->mirror_x = 1;
     camera->flip_y = camera->stacked_fields == 0;
-    if (full_resolution_pair)
+    if (native_input)
     {
         if (camera->stacked_fields || camera->width != input_width ||
             camera->height != input_height || camera->stride < input_width * 2u)
         {
-            fprintf(stderr, "%s: full-resolution pair requires 1920x1200 GMSL UYVY\n", path);
+            fprintf(stderr, "%s: native input requires 1920x1200 GMSL UYVY\n", path);
             return -1;
         }
         camera->mirror_x = 0;
         camera->flip_y = 0;
+        if (import_capture && camera->stride != input_width * 2u)
+        {
+            fprintf(stderr, "%s: imported capture needs tightly packed UYVY\n", path);
+            return -1;
+        }
     }
     if (camera->stacked_fields != 0)
     {
@@ -346,6 +359,19 @@ static int camera_open(Camera *camera, const char *path)
             fprintf(stderr, "%s: mmap failed: %s\n", path, strerror(errno));
             return -1;
         }
+        if (import_capture)
+        {
+            struct v4l2_exportbuffer exp = {0};
+            exp.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+            exp.index = i;
+            exp.flags = O_RDWR | O_CLOEXEC;
+            if (xioctl(camera->fd, VIDIOC_EXPBUF, &exp) < 0)
+            {
+                fprintf(stderr, "%s: VIDIOC_EXPBUF failed: %s\n", path, strerror(errno));
+                return -1;
+            }
+            camera->buffers[i].dma_fd = exp.fd;
+        }
     }
 
     for (i = 0; i < camera->num_buffers; i++)
@@ -387,6 +413,8 @@ static void camera_close(Camera *camera)
 
     for (i = 0; i < camera->num_buffers; i++)
     {
+        if (camera->buffers[i].dma_fd >= 0)
+            close(camera->buffers[i].dma_fd);
         if ((camera->buffers[i].start != NULL) &&
             (camera->buffers[i].start != MAP_FAILED))
         {
@@ -442,6 +470,44 @@ static int camera_requeue(Camera *camera, struct v4l2_buffer *buf)
     return 0;
 }
 
+static vx_status import_camera_frame(vx_image image, Camera *camera,
+                                     const struct v4l2_buffer *buf)
+{
+    CaptureBuffer *buffer;
+    const uint32_t size = input_width * input_height * 2u;
+    void *old_addr[1] = {NULL};
+    uint32_t old_size[1], entries = 0;
+    const void *addr[1];
+    vx_status status;
+
+    if (buf->index >= camera->num_buffers || buf->bytesused < size ||
+        (buf->flags & V4L2_BUF_FLAG_ERROR)) return VX_FAILURE;
+    buffer = &camera->buffers[buf->index];
+    if (buffer->imported == NULL)
+    {
+        uint64_t virt = 0, phys = 0;
+        int fd = buffer->dma_fd;
+        /* appMem takes ownership of this FD, including its failure path. */
+        buffer->dma_fd = -1;
+        if (fd < 0 || appMemTranslateDmaBufFd(fd, buffer->length, &virt, &phys) != 0)
+            return VX_FAILURE;
+        buffer->imported = (void *)(uintptr_t)virt;
+    }
+    if (!camera->external_image_bound)
+    {
+        status = tivxReferenceExportHandle((vx_reference)image, old_addr, old_size, 1, &entries);
+        if (status != VX_SUCCESS || entries != 1) return VX_FAILURE;
+    }
+    addr[0] = buffer->imported;
+    status = tivxReferenceImportHandle((vx_reference)image, addr, &size, 1);
+    if (status == VX_SUCCESS)
+    {
+        camera->external_image_bound = 1;
+        if (old_addr[0] != NULL) tivxMemFree(old_addr[0], old_size[0], TIVX_MEM_EXTERNAL);
+    }
+    return status;
+}
+
 static vx_status fit_uyvy_from_uyvy(vx_image image,
                                     const Camera *camera,
                                     const uint8_t *src)
@@ -472,7 +538,7 @@ static vx_status fit_uyvy_from_uyvy(vx_image image,
         return VX_ERROR_NOT_SUPPORTED;
     }
 
-    if (full_resolution_pair)
+    if (native_input)
     {
         /* Sequential copies avoid slow scattered reads from capture memory.
          * Native orientation is preserved for the full-resolution GPU LUT. */
@@ -560,15 +626,38 @@ static void *capture_worker(void *argument)
     {
         return NULL;
     }
+    if (import_capture)
+    {
+        /* Consume the newest available frame; never wait to match timestamps. */
+        uint32_t i;
+        for (i = 0; i < CAP_BUFFERS - 1u; i++)
+        {
+            struct v4l2_buffer next = {0};
+            next.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+            next.memory = V4L2_MEMORY_MMAP;
+            if (xioctl(worker->camera->fd, VIDIOC_DQBUF, &next) < 0)
+            {
+                if (errno != EAGAIN) return NULL;
+                break;
+            }
+            if (camera_requeue(worker->camera, &buf) != 0) return NULL;
+            buf = next;
+        }
+        worker->camera->held_buffer = buf;
+        worker->camera->frame_held = 1;
+    }
     worker->capture_seconds = now_seconds() - stage_start;
 
     stage_start = now_seconds();
-    worker->status = fit_uyvy_from_uyvy(
-        worker->image, worker->camera,
-        (const uint8_t *)worker->camera->buffers[buf.index].start);
+    if (import_capture)
+        worker->status = import_camera_frame(worker->image, worker->camera, &buf);
+    else
+        worker->status = fit_uyvy_from_uyvy(
+            worker->image, worker->camera,
+            (const uint8_t *)worker->camera->buffers[buf.index].start);
     worker->convert_seconds = now_seconds() - stage_start;
 
-    if (camera_requeue(worker->camera, &buf) != 0)
+    if (!import_capture && camera_requeue(worker->camera, &buf) != 0)
     {
         worker->status = VX_FAILURE;
     }
@@ -1301,7 +1390,11 @@ int main(int argc, char *argv[])
     const char *use_calibration_text = getenv("APP_SRV_USE_CALIBRATION");
     const char *pair_lut = getenv("APP_SRV_PAIR_LUT");
     int pair_mode = (pair_lut != NULL) && (pair_lut[0] != '\0');
+    const char *four_lut = getenv("APP_SRV_FOUR_LUT");
+    int four_mode = (four_lut != NULL) && (four_lut[0] != '\0');
     const char *full_res_text = getenv("APP_SRV_PAIR_FULL_RES");
+    uint32_t output_width = four_mode ? 1920u : OUT_WIDTH;
+    uint32_t output_height = four_mode ? 720u : OUT_HEIGHT;
     const char *devices[NUM_CAMERAS];
     uint32_t frame_count = 0u;
     uint32_t calibration_frame = 30u;
@@ -1339,6 +1432,11 @@ int main(int argc, char *argv[])
     signal(SIGINT, request_stop);
     signal(SIGTERM, request_stop);
 
+    if (four_mode && (pair_mode || (calibration_dir != NULL && calibration_dir[0] != '\0')))
+    {
+        fprintf(stderr, "Four-camera LUT mode cannot be combined with pair mode or legacy calibration capture\n");
+        return 1;
+    }
     if (full_res_text != NULL && strcmp(full_res_text, "0") != 0)
     {
         if (strcmp(full_res_text, "1") != 0 || !pair_mode ||
@@ -1347,12 +1445,23 @@ int main(int argc, char *argv[])
             fprintf(stderr, "APP_SRV_PAIR_FULL_RES=1 requires pair mode without legacy calibration capture\n");
             return 1;
         }
-        full_resolution_pair = 1;
+        native_input = 1;
+    }
+    if (four_mode)
+    {
+        const char *import_text = getenv("APP_SRV_IMPORT_CAPTURE");
+        native_input = 1;
+        import_capture = import_text == NULL || strcmp(import_text, "0") != 0;
+    }
+    if (native_input)
+    {
         input_width = MAX_IN_WIDTH;
         input_height = MAX_IN_HEIGHT;
     }
     printf("jk_srv_live: GPU inputs %ux%u, orientation=%s\n",
-           input_width, input_height, full_resolution_pair ? "GPU LUT" : "CPU");
+           input_width, input_height, native_input ? "GPU LUT" : "CPU");
+    if (four_mode) printf("jk_srv_live: capture transfer=%s\n",
+                          import_capture ? "DMA-BUF import" : "CPU copy");
 
     memset(cameras, 0, sizeof(cameras));
     for (i = 0; i < NUM_CAMERAS; i++)
@@ -1391,7 +1500,7 @@ int main(int argc, char *argv[])
     else
         printf("jk_srv_live: frames=%u output=%s\n", frame_count, output_path);
     printf("jk_srv_live: %s GPU LUT, camera order front/right/back/left\n",
-           pair_mode ? "GMSL pair" : (use_calibration ? "TI calibrated" : "identity quadrant"));
+           four_mode ? "four GMSL external" : (pair_mode ? "GMSL pair" : (use_calibration ? "TI calibrated" : "identity quadrant")));
     if ((calibration_dir != NULL) && (calibration_dir[0] != '\0'))
     {
         printf("jk_srv_live: calibration capture frame=%u directory=%s\n",
@@ -1434,7 +1543,9 @@ int main(int argc, char *argv[])
     inputs = vxCreateObjectArray(context, (vx_reference)exemplar, NUM_CAMERAS);
     release_image(&exemplar);
 
-    if (pair_mode)
+    if (four_mode)
+        srv_lut = read_pair_lut(context, four_lut);
+    else if (pair_mode)
         srv_lut = read_pair_lut(context, pair_lut);
     else if (use_calibration != 0)
         srv_lut = create_calibrated_lut(context);
@@ -1451,7 +1562,7 @@ int main(int argc, char *argv[])
     views = vxCreateObjectArray(context, (vx_reference)view_obj, NUM_VIEWS);
     release_user_data_object(&view_obj);
 
-    output = vxCreateImage(context, OUT_WIDTH, OUT_HEIGHT, VX_DF_IMAGE_RGBX);
+    output = vxCreateImage(context, output_width, output_height, VX_DF_IMAGE_RGBX);
     graph = vxCreateGraph(context);
 
     if ((status != VX_SUCCESS) || (inputs == NULL) || (views == NULL) ||
@@ -1480,8 +1591,8 @@ int main(int argc, char *argv[])
         memset(&display_params, 0, sizeof(display_params));
         display_params.opMode = TIVX_KERNEL_DISPLAY_ZERO_BUFFER_COPY_MODE;
         display_params.pipeId = 0u;
-        display_params.outWidth = OUT_WIDTH;
-        display_params.outHeight = OUT_HEIGHT;
+        display_params.outWidth = output_width;
+        display_params.outHeight = output_height;
         display_params.posX = 0u;
         display_params.posY = 0u;
         display_params_obj = vxCreateUserDataObject(
@@ -1499,7 +1610,7 @@ int main(int argc, char *argv[])
             status = vxSetNodeTarget(
                 display_node, VX_TARGET_STRING, TIVX_TARGET_DISPLAY1);
             printf("jk_srv_live: TI DISPLAY1 enabled at %ux%u\n",
-                   OUT_WIDTH, OUT_HEIGHT);
+                   output_width, output_height);
         }
     }
     else if (status == VX_SUCCESS)
@@ -1619,6 +1730,19 @@ int main(int argc, char *argv[])
                     frame, status);
             goto cleanup;
         }
+        /* vxProcessGraph is synchronous: only now can capture reuse buffers. */
+        for (i = 0; i < NUM_CAMERAS; i++)
+        {
+            if (cameras[i].frame_held)
+            {
+                if (camera_requeue(&cameras[i], &cameras[i].held_buffer) != 0)
+                {
+                    status = VX_FAILURE;
+                    goto cleanup;
+                }
+                cameras[i].frame_held = 0;
+            }
+        }
 
         if (((frame + 1u) % 30u) == 0u)
         {
@@ -1643,7 +1767,7 @@ int main(int argc, char *argv[])
     if (status == VX_SUCCESS)
     {
         printf("jk_srv_live: wrote %s (%ux%u RGBX raw)\n",
-               output_path, OUT_WIDTH, OUT_HEIGHT);
+               output_path, output_width, output_height);
         printf("jk_srv_live: processed %u frames in %.3f s = %.2f fps\n",
                frame, end_time - start_time,
                (double)frame / (end_time - start_time));
@@ -1672,6 +1796,20 @@ cleanup:
         vxReleaseArray(&srv_lut);
     }
     release_object_array(&views);
+    if (inputs != NULL)
+    {
+        for (i = 0; i < NUM_CAMERAS; i++)
+        {
+            if (cameras[i].external_image_bound)
+            {
+                vx_image image = (vx_image)vxGetObjectArrayItem(inputs, i);
+                const void *addr[1] = {NULL};
+                const uint32_t size = 0;
+                tivxReferenceImportHandle((vx_reference)image, addr, &size, 1);
+                release_image(&image);
+            }
+        }
+    }
     release_object_array(&inputs);
 
     if (context != NULL)
@@ -1684,6 +1822,16 @@ cleanup:
 
     if (app_initialized != 0)
     {
+        for (i = 0; i < NUM_CAMERAS; i++)
+        {
+            uint32_t b;
+            for (b = 0; b < cameras[i].num_buffers; b++)
+            {
+                CaptureBuffer *buffer = &cameras[i].buffers[b];
+                if (buffer->imported != NULL)
+                    appMemFree(APP_MEM_HEAP_DDR, buffer->imported, buffer->length);
+            }
+        }
         appDeInit();
     }
 

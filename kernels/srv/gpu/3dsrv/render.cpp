@@ -64,6 +64,7 @@
 #include "car.h"
 #include "box.h"
 #include "srv_views.h"
+#include "jk_preview.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
@@ -925,6 +926,12 @@ int render_setup(render_state_t *pObj)
     srv_viewports[0].y = 0;
     srv_viewports[0].width = pObj->screen_width;
     srv_viewports[0].height = pObj->screen_height;
+    if (getenv("APP_SRV_FOUR_COMPARE") != NULL)
+    {
+        srv_viewports[0].x = pObj->screen_width / 2;
+        srv_viewports[0].width = pObj->screen_width - srv_viewports[0].x;
+        screen1_init_vbo();
+    }
     num_viewports = sizeof(srv_viewports)/sizeof(srv_viewport_t);
 
     for (int i = 0; i < num_viewports; i++)
@@ -1033,6 +1040,11 @@ void render_renderFrame(render_state_t *pObj, void *pEglObj, GLuint *texYuv)
 
 	shader_output_select = srv_param_select;
 	glClear(GL_COLOR_BUFFER_BIT);
+	if (getenv("APP_SRV_FOUR_COMPARE") != NULL)
+	{
+		// RGBX is presented through Wayland: masked areas must remain opaque.
+		glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_FALSE);
+	}
 	{
 		for(int i = 0; i < num_viewports; i++)
 		{
@@ -1086,7 +1098,21 @@ void render_renderFrame(render_state_t *pObj, void *pEglObj, GLuint *texYuv)
 				car_draw(i);
 		}
 
-		/* The single-view quad is initialized for diagnostics and future previews. */
+		if (getenv("APP_SRV_FOUR_COMPARE") != NULL)
+		{
+			// Reuse the captured DMA textures; previews need no additional capture/copy.
+			int selected = jk_preview_selection("/run/jk-srv-preview.state");
+			for (int camera = 0; camera < 4; camera++)
+			{
+				if (selected >= 0 && camera != selected)
+					continue;
+				jk_preview_rect rect = jk_preview_viewport(camera, selected >= 0,
+					pObj->screen_width, pObj->screen_height, pObj->cam_width, pObj->cam_height);
+				glViewport(rect.x, rect.y, rect.width, rect.height);
+				screen1_draw_vbo(texYuv[camera]);
+			}
+			glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+		}
 		//boxes_draw((ObjectBox *)pObj->BoxLUT, (Pose3D_f *)pObj->BoxPose3D, texYuv);
 	}
 
