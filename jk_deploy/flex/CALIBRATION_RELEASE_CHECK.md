@@ -1,5 +1,15 @@
 # Calibration Reliability Review - September 29, 2026
 
+## Later Checker-Coverage Failure
+
+Job `20260929T214533Z_92c6cb` exposed a separate detector limitation: sparse
+checker rows across the tripod legs disappeared when intersecting three passes.
+Marker-guided seed retries recover the visible grid without relaxing final
+acceptance limits. Saved marked and clear bursts both pass reprocessing; the
+local suite now has 169 discovered tests, 147 passed and 22 Qt-only skipped.
+See [the regression record](sessions/20260929_checker_retry/README.md).
+The sections below retain the evidence from the earlier reference-variable fix.
+
 ## Failure And Fixes
 
 The failure in job `20260929T210046Z_5ce457` was a software bug, not a failed

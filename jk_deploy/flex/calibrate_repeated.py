@@ -12,7 +12,7 @@ import traceback
 
 import cv2
 
-from align_markers import DEFAULT_GEOMETRY
+from align_markers import DEFAULT_GEOMETRY, validate_marker_views
 from average_burst import average_raw, motion_diagnostic
 from calibrate_table import HERE, calibrate, digest, save_report
 from repeat_consistency import common_checker_support, compare_sessions
@@ -70,10 +70,20 @@ def calibrate_bursts(source, output, front=0, marker_ids=None, geometry=DEFAULT_
                         report["motion_warnings"].append(dict(reference=previous, candidate=name, input=i, **motion))
                 save_report(output, report)
         for name in names:
+            detection_options = []
+            if reference is None:
+                detector = cv2.aruco.ArucoDetector(cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_4X4_50))
+                views = []
+                for i in range(4):
+                    image = cv2.imread(str(output/"prepared"/name/f"input{i}.png"))
+                    corners, ids, _ = detector.detectMarkers(image)
+                    views.append((corners, ids, image.shape))
+                _, selection = validate_marker_views(views, marker_ids)
+                detection_options = ["--marker-ids", *map(str, selection["selected_ids"])]
             for i in range(4):
                 print(f"Detecting checkerboard: {name}, input {i}", flush=True)
                 image = output/"prepared"/name/f"input{i}.png"
-                command = [sys.executable, str(HERE/"detect_table.py"), str(image)]
+                command = [sys.executable, str(HERE/"detect_table.py"), str(image), *detection_options]
                 with image.with_suffix(".detect.log").open("w") as log:
                     subprocess.run(command, stdout=log, stderr=subprocess.STDOUT, check=True, timeout=300)
         print("Checking common checker coverage", flush=True)

@@ -17,12 +17,14 @@ D0 = np.array([-1/24, 1/1920, 0., 0.])
 cv2.setNumThreads(4)
 
 
-def seed_cell(gray, corners, tree):
+def seed_cell(gray, corners, tree, windows=None):
     # An unbounded repeating cloth can produce a larger-than-one-cell basis.
     # Reject seed quads containing additional detected checker corners.
-    for x, y in ((700, 250), (500, 200), (1000, 200), (300, 100), (700, 50),
+    if windows is None:
+        windows = ((700, 250), (500, 200), (1000, 200), (300, 100), (700, 50),
                  (700, 500), (1100, 500), (100, 450), (500, 450), (1100, 50),
-                 (1200, 0), (1000, 0), (0, 50), (1200, 250), (300, 400)):
+                 (1200, 0), (1000, 0), (0, 50), (1200, 250), (300, 400))
+    for x, y in windows:
         found, points, meta = cv2.findChessboardCornersSBWithMeta(
             gray[y:y+500, x:x+600], (5, 5),
             cv2.CALIB_CB_NORMALIZE_IMAGE | cv2.CALIB_CB_LARGER)
@@ -74,7 +76,7 @@ def seed_cell(gray, corners, tree):
     raise RuntimeError("No unambiguous one-cell seed found")
 
 
-def detect(path):
+def detect(path, seed_windows=None):
     image = cv2.imread(str(path))
     if image is None or image.shape[:2] != SIZE[::-1]:
         raise ValueError(f"Invalid full-resolution input: {path}")
@@ -86,7 +88,7 @@ def detect(path):
                              (cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT,
                               30, .01)).reshape(-1, 2)
     tree = cKDTree(points)
-    indices = seed_cell(gray, points, tree)
+    indices = seed_cell(gray, points, tree, seed_windows)
     grid = dict(zip(((0, 0), (1, 0), (0, 1), (1, 1)), indices))
     used = set(indices)
     for _ in range(120):

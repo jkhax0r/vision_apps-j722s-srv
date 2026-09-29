@@ -233,6 +233,27 @@ def table_frame(observations, corner_ids, geometry, inset_percent=0.5):
     return crop, frame, {n: p.tolist() for n, p in table.items()}, quality
 
 
+def marker_grid_support(grid, points, homography, detected, label):
+    """Map marker corners into the measured lattice, limiting extrapolation."""
+    rays = undistort(points)
+    inverse = np.linalg.inv(homography)
+    residual = RBFInterpolator(rays, grid-transform(rays, inverse),
+                               neighbors=32, smoothing=1e-5)
+    observed, farthest = {}, 0.
+    tree = cKDTree(grid)
+    for n, p in detected.items():
+        q = undistort(p)
+        observed[n] = transform(q, inverse)+residual(q)
+        if not np.isfinite(observed[n]).all():
+            raise ValueError(f"{label}, marker {n}: unstable inverse mapping")
+        distance = float(tree.query(observed[n])[0].max())
+        farthest = max(farthest, distance)
+        if distance > 8:
+            raise ValueError(f"{label}, marker {n}: too far from reliable checker coverage "
+                             f"({distance:.1f} cells; maximum 8)")
+    return observed, farthest
+
+
 def build_config(session, front=0, allowed=None, geometry=None, inset_percent=.5):
     if allowed is not None and (len(allowed) != 4 or len(set(allowed)) != 4 or any(n not in range(50) for n in allowed)):
         raise ValueError("--marker-ids must specify four distinct IDs in 0..49")
@@ -255,24 +276,10 @@ def build_config(session, front=0, allowed=None, geometry=None, inset_percent=.5
         data = np.load(session / "captures" / f"input{i}.floor.npz")
         if len(data["grid"]) < 150:
             raise ValueError(f"Camera {i+1}: fewer than 150 checker intersections")
-        rays = undistort(data["points"])
-        inverse = np.linalg.inv(fit["H"])
         # The markers border the observed grid. Correct the coarse lens/homography
         # inverse locally before rounding its coordinates to a whole-cell shift.
-        residual = RBFInterpolator(rays, data["grid"]-transform(rays, inverse),
-                                   neighbors=32, smoothing=1e-5)
-        observed = {}
-        tree = cKDTree(data["grid"])
-        farthest = 0.
-        for n, p in detected.items():
-            q = undistort(p)
-            observed[n] = transform(q, inverse)+residual(q)
-            if not np.isfinite(observed[n]).all():
-                raise ValueError(f"Camera {i+1}, marker {n}: unstable inverse mapping")
-            distance = float(tree.query(observed[n])[0].max())
-            farthest = max(farthest, distance)
-            if distance > 8:
-                raise ValueError(f"Camera {i+1}, marker {n}: too far from reliable checker coverage")
+        observed, farthest = marker_grid_support(data["grid"], data["points"], fit["H"],
+                                                  detected, f"Camera {i+1}")
         grids.append(observed)
         support.append({"input": i, "farthest_marker_corner_from_checker_cells": farthest})
     center = transform(undistort(np.array([[960., 600.]])), np.linalg.inv(fits[front]["H"]))[0]

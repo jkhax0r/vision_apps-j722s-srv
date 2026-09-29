@@ -143,7 +143,8 @@ class BurstOrchestrationTests(unittest.TestCase):
             image = np.full((32, 32, 3), 100, np.uint8)
             with patch('calibrate_repeated.average_raw', return_value=(image, {'motion': []})), \
                  patch('calibrate_repeated.motion_diagnostic', return_value={'passed': True}) as motion, \
-                 patch('calibrate_repeated.subprocess.run'), \
+                 patch('calibrate_repeated.subprocess.run') as run, \
+                 patch('calibrate_repeated.validate_marker_views', return_value=([], {'selected_ids': [1, 2, 3, 4]})), \
                  patch('calibrate_repeated.common_checker_support', return_value=[]), \
                  patch('calibrate_repeated.calibrate', side_effect=fit), \
                  patch('calibrate_repeated.compare_sessions', return_value={'passed': True, 'selected_pass': 1}):
@@ -152,6 +153,12 @@ class BurstOrchestrationTests(unittest.TestCase):
             self.assertEqual(len(observed), 3)
             self.assertEqual(motion.call_count, 12)
             self.assertEqual('clean_refinement' in result, use_reference)
+            self.assertEqual(run.call_count, 12)
+            for call in run.call_args_list:
+                command = call.args[0]
+                self.assertEqual('--marker-ids' in command, not use_reference)
+                if not use_reference:
+                    self.assertEqual(command[-5:], ['--marker-ids', '1', '2', '3', '4'])
 
     def test_marked_stage_reference_stays_none_after_image_comparisons(self):
         self.exercise(False)

@@ -90,7 +90,8 @@ def calibrate(source, output, front=0, marker_ids=None, geometry=DEFAULT_GEOMETR
             report["corner_ids_clockwise_from_front_right"] = ids
         for i in range(4):
             if detected_corners is None:
-                run("detect_table.py", captures/f"input{i}.png")
+                options = [] if reference is not None else ["--marker-ids", *report["marker_selection"]["selected_ids"]]
+                run("detect_table.py", captures/f"input{i}.png", *options)
             else:
                 name = f"input{i}.corners.npz"
                 with np.load(detected_corners/name) as data:

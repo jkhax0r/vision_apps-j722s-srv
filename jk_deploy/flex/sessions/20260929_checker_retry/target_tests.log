@@ -1,0 +1,19 @@
+test_all_unsupported_variants_fail_without_publishing (__main__.CheckerRetryTests.test_all_unsupported_variants_fail_without_publishing) ... jk-checker-emh88go3 input 763 corners
+jk-checker-o3kwio4a input 1000 corners
+jk-checker-h9ykza5k input 789 corners
+jk-checker-o0j7u19o input 775 corners
+jk-checker-bxy_nr1n input 764 corners
+jk-checker-ydh170ac input 776 corners
+ok
+test_clear_detection_does_not_require_markers (__main__.CheckerRetryTests.test_clear_detection_does_not_require_markers) ... jk-checker-0m6f844f input 763 corners
+ok
+test_extrapolation_limit_is_not_relaxed (__main__.CheckerRetryTests.test_extrapolation_limit_is_not_relaxed) ... ok
+test_real_occluded_grid_retries_before_accepting (__main__.CheckerRetryTests.test_real_occluded_grid_retries_before_accepting) ... jk-checker-4kngmcrh input 763 corners
+jk-checker-mia_r85n input 1000 corners
+ok
+test_single_row_is_not_reliable_corner_support (__main__.CheckerRetryTests.test_single_row_is_not_reliable_corner_support) ... ok
+
+----------------------------------------------------------------------
+Ran 5 tests in 72.438s
+
+OK
