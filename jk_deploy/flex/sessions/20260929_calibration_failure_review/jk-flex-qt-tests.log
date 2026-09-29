@@ -1,0 +1,32 @@
+Detected locale "C" with character encoding "ANSI_X3.4-1968", which is not UTF-8.
+Qt depends on a UTF-8 locale, but has failed to switch to one.
+If this causes problems, reconfigure your locale. See the locale(1) manual
+for more information.
+test_apply_to_all (__main__.CameraUiTests.test_apply_to_all) ... ok
+test_camera_selection_and_brightness_slider (__main__.CameraUiTests.test_camera_selection_and_brightness_slider) ... ok
+test_cancel_removal_does_not_authorize_second_capture (__main__.CameraUiTests.test_cancel_removal_does_not_authorize_second_capture) ... ok
+test_committed_pointer_wins_over_stale_job_status (__main__.CameraUiTests.test_committed_pointer_wins_over_stale_job_status) ... ok
+test_continue_is_ignored_outside_removal_phase (__main__.CameraUiTests.test_continue_is_ignored_outside_removal_phase) ... ok
+test_each_preview_expands_and_returns_to_quad (__main__.CameraUiTests.test_each_preview_expands_and_returns_to_quad) ... ok
+test_failed_ack_write_keeps_removal_prompt_visible (__main__.CameraUiTests.test_failed_ack_write_keeps_removal_prompt_visible) ... ok
+test_incomplete_job_has_no_retry_button (__main__.CameraUiTests.test_incomplete_job_has_no_retry_button) ... ok
+test_malformed_persisted_status_does_not_crash_ui (__main__.CameraUiTests.test_malformed_persisted_status_does_not_crash_ui) ... ok
+test_malformed_status_on_worker_exit_does_not_crash (__main__.CameraUiTests.test_malformed_status_on_worker_exit_does_not_crash) ... ok
+test_manual_mode_enables_shutter_and_gain (__main__.CameraUiTests.test_manual_mode_enables_shutter_and_gain) ... ok
+test_recalibration_requires_confirmation (__main__.CameraUiTests.test_recalibration_requires_confirmation) ... ok
+test_removal_prompt_is_centered_modal_and_requires_continue (__main__.CameraUiTests.test_removal_prompt_is_centered_modal_and_requires_continue) ... ok
+test_repeated_cancel_does_not_interrupt_restore_twice (__main__.CameraUiTests.test_repeated_cancel_does_not_interrupt_restore_twice) ... ok
+test_restart_remembers_interrupted_capture_without_removal_popup (__main__.CameraUiTests.test_restart_remembers_interrupted_capture_without_removal_popup) ... ok
+test_retry_is_centered_confirmed_and_cancellable (__main__.CameraUiTests.test_retry_is_centered_confirmed_and_cancellable) ... ok
+test_retry_revalidates_deleted_capture (__main__.CameraUiTests.test_retry_revalidates_deleted_capture) ... ok
+test_retry_starts_fresh_job_and_passes_saved_source (__main__.CameraUiTests.test_retry_starts_fresh_job_and_passes_saved_source) ... CAL confirmed: /tmp/tmp6dk4sux0/jobs/20260929T212938Z_1107ac
+ok
+test_selection_failure_does_not_show_expanded_border (__main__.CameraUiTests.test_selection_failure_does_not_show_expanded_border) ... ok
+test_settings_work_with_expanded_preview (__main__.CameraUiTests.test_settings_work_with_expanded_preview) ... ok
+test_stitched_half_and_menu_do_not_select_preview (__main__.CameraUiTests.test_stitched_half_and_menu_do_not_select_preview) ... ok
+test_storage_restore_error_is_visible (__main__.CameraUiTests.test_storage_restore_error_is_visible) ... ok
+
+----------------------------------------------------------------------
+Ran 22 tests in 23.726s
+
+OK

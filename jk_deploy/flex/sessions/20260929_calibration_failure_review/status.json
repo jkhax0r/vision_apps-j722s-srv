@@ -1,0 +1,38 @@
+{
+  "state": "complete",
+  "phase": "Calibration applied",
+  "started_utc": "2026-09-29T21:26:25.724158+00:00",
+  "job": "/root/jk-calibration-jobs/20260929T212624Z_b08624",
+  "timings_seconds": {
+    "Calculating marked reference": 417.2,
+    "Refining exposed corners": 380.9,
+    "Applying": 5.3
+  },
+  "elapsed_seconds": 803.6,
+  "previous_preset": "/opt/jk-ti-srv-flex/table_20260929T185653Z_4f6252",
+  "capture_source": "/root/jk-calibration-jobs/20260929T210046Z_5ce457",
+  "step": "Applying",
+  "commands": [
+    [
+      "/usr/bin/python3",
+      "/opt/jk-ti-srv-flex/calibration_ui_f4fe8b60f409/tools/flex/calibrate_repeated.py",
+      "/root/jk-calibration-jobs/20260929T210046Z_5ce457/raw",
+      "/root/jk-calibration-jobs/20260929T212624Z_b08624/marked_result"
+    ],
+    [
+      "/usr/bin/python3",
+      "/opt/jk-ti-srv-flex/calibration_ui_f4fe8b60f409/tools/flex/calibrate_repeated.py",
+      "/root/jk-calibration-jobs/20260929T210046Z_5ce457/raw_clear",
+      "/root/jk-calibration-jobs/20260929T212624Z_b08624/result",
+      "--reference",
+      "/root/jk-calibration-jobs/20260929T212624Z_b08624/marked_result"
+    ],
+    [
+      "/opt/jk-ti-srv-flex/table_20260929T212624Z_b08624/run.sh"
+    ]
+  ],
+  "motion_warning_count": 6,
+  "warning": "Movement or scene changes detected during capture. Calibration checks passed.",
+  "launcher": "/opt/jk-ti-srv-flex/table_20260929T212624Z_b08624/run.sh",
+  "finished_utc": "2026-09-29T21:39:49.322897+00:00"
+}

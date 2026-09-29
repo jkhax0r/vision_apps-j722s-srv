@@ -1,0 +1,74 @@
+
+/usr/bin/python3 /opt/jk-ti-srv-flex/calibration_ui_f4fe8b60f409/tools/flex/calibrate_repeated.py /root/jk-calibration-jobs/20260929T210046Z_5ce457/raw /root/jk-calibration-jobs/20260929T212624Z_b08624/marked_result
+Averaging pass01, input 0 (12 frames)
+Averaging pass01, input 1 (12 frames)
+Averaging pass01, input 2 (12 frames)
+Averaging pass01, input 3 (12 frames)
+Averaging pass02, input 0 (12 frames)
+Averaging pass02, input 1 (12 frames)
+Averaging pass02, input 2 (12 frames)
+Averaging pass02, input 3 (12 frames)
+Averaging pass03, input 0 (12 frames)
+Averaging pass03, input 1 (12 frames)
+Averaging pass03, input 2 (12 frames)
+Averaging pass03, input 3 (12 frames)
+Detecting checkerboard: pass01, input 0
+Detecting checkerboard: pass01, input 1
+Detecting checkerboard: pass01, input 2
+Detecting checkerboard: pass01, input 3
+Detecting checkerboard: pass02, input 0
+Detecting checkerboard: pass02, input 1
+Detecting checkerboard: pass02, input 2
+Detecting checkerboard: pass02, input 3
+Detecting checkerboard: pass03, input 0
+Detecting checkerboard: pass03, input 1
+Detecting checkerboard: pass03, input 2
+Detecting checkerboard: pass03, input 3
+Checking common checker coverage
+Calibrating pass01 independently
+Calibrating pass02 independently
+Calibrating pass03 independently
+Comparing calibration passes
+PASS: /root/jk-calibration-jobs/20260929T212624Z_b08624/marked_result/comparison.png; selected pass 2. No target calibration changed.
+
+/usr/bin/python3 /opt/jk-ti-srv-flex/calibration_ui_f4fe8b60f409/tools/flex/calibrate_repeated.py /root/jk-calibration-jobs/20260929T210046Z_5ce457/raw_clear /root/jk-calibration-jobs/20260929T212624Z_b08624/result --reference /root/jk-calibration-jobs/20260929T212624Z_b08624/marked_result
+Averaging pass01, input 0 (12 frames)
+Averaging pass01, input 1 (12 frames)
+Averaging pass01, input 2 (12 frames)
+Averaging pass01, input 3 (12 frames)
+Averaging pass02, input 0 (12 frames)
+Averaging pass02, input 1 (12 frames)
+Averaging pass02, input 2 (12 frames)
+Averaging pass02, input 3 (12 frames)
+Averaging pass03, input 0 (12 frames)
+Averaging pass03, input 1 (12 frames)
+Averaging pass03, input 2 (12 frames)
+Averaging pass03, input 3 (12 frames)
+Detecting checkerboard: pass01, input 0
+Detecting checkerboard: pass01, input 1
+Detecting checkerboard: pass01, input 2
+Detecting checkerboard: pass01, input 3
+Detecting checkerboard: pass02, input 0
+Detecting checkerboard: pass02, input 1
+Detecting checkerboard: pass02, input 2
+Detecting checkerboard: pass02, input 3
+Detecting checkerboard: pass03, input 0
+Detecting checkerboard: pass03, input 1
+Detecting checkerboard: pass03, input 2
+Detecting checkerboard: pass03, input 3
+Checking common checker coverage
+Calibrating pass01 independently
+Calibrating pass02 independently
+Calibrating pass03 independently
+Comparing calibration passes
+PASS: /root/jk-calibration-jobs/20260929T212624Z_b08624/result/comparison.png; selected pass 2. No target calibration changed.
+
+/opt/jk-ti-srv-flex/table_20260929T212624Z_b08624/run.sh
+View 1: tevs 12-0039 -> MAX sink 4 -> VC 0 -> /dev/video2
+View 2: tevs 13-003a -> MAX sink 3 -> VC 1 -> /dev/video3
+View 3: tevs 14-003b -> MAX sink 2 -> VC 2 -> /dev/video4
+View 4: tevs 15-003c -> MAX sink 1 -> VC 3 -> /dev/video5
+Running as unit: jk-flex-ti-srv.service; invocation ID: c552c69bb0da4f589483b607996104e8
+TI four-GMSL renderer running with calibration /opt/jk-ti-srv-flex/table_20260929T212624Z_b08624
+Return to four raw views: /opt/jk-ti-srv-flex/table_20260929T212624Z_b08624/../run_flex_stitch.sh quad
+{"cameras": [{"identity": "0039", "entity": "tevs 12-0039", "device": "/dev/v4l-subdev6", "video": "/dev/video2", "label": "Camera 1 (top left)", "controls": {"brightness": {"min": 0, "max": 8192, "step": 1, "default": 4096, "value": 4096, "kind": "int", "menu": {}, "readonly": false, "inactive": false}, "exposure": {"min": 1, "max": 1000000, "step": 1, "default": 10000, "value": 10000, "kind": "int", "menu": {}, "readonly": false, "inactive": false}, "gain": {"min": 1, "max": 64, "step": 1, "default": 1, "value": 1, "kind": "int", "menu": {}, "readonly": false, "inactive": false}, "power_line_frequency": {"min": 0, "max": 3, "default": 0, "value": 0, "kind": "menu", "step": 1, "menu": {"0": "Disabled", "1": "50 Hz", "2": "60 Hz", "3": "Auto"}, "readonly": false, "inactive": false}, "max_fps": {"min": 1, "max": 255, "step": 1, "default": 30, "value": 30, "kind": "int", "menu": {}, "readonly": false, "inactive": false}, "ae_exposure_upper": {"min": 1, "max": 1000000, "step": 1, "default": 8333, "value": 8333, "kind": "int", "menu": {}, "readonly": false, "inactive": false}, "ae_exposure_max": {"min": 1, "max": 1000000, "step": 1, "default": 66666, "value": 66666, "kind": "int", "menu": {}, "readonly": false, "inactive": false}, "exposure_mode": {"min": 0, "max": 2, "default": 1, "value": 1, "kind": "menu", "step": 1, "menu": {"0": "Manual Mode", "1": "Auto Mode", "2": "AGC Mode"}, "readonly": false, "inactive": false}}}, {"identity": "003a", "entity": "tevs 13-003a", "device": "/dev/v4l-subdev5", "video": "/dev/video3", "label": "Camera 2 (top right)", "controls": {"brightness": {"min": 0, "max": 8192, "step": 1, "default": 4096, "value": 4096, "kind": "int", "menu": {}, "readonly": false, "inactive": false}, "exposure": {"min": 1, "max": 1000000, "step": 1, "default": 10000, "value": 10000, "kind": "int", "menu": {}, "readonly": false, "inactive": false}, "gain": {"min": 1, "max": 64, "step": 1, "default": 1, "value": 1, "kind": "int", "menu": {}, "readonly": false, "inactive": false}, "power_line_frequency": {"min": 0, "max": 3, "default": 0, "value": 0, "kind": "menu", "step": 1, "menu": {"0": "Disabled", "1": "50 Hz", "2": "60 Hz", "3": "Auto"}, "readonly": false, "inactive": false}, "max_fps": {"min": 1, "max": 255, "step": 1, "default": 30, "value": 30, "kind": "int", "menu": {}, "readonly": false, "inactive": false}, "ae_exposure_upper": {"min": 1, "max": 1000000, "step": 1, "default": 8333, "value": 8333, "kind": "int", "menu": {}, "readonly": false, "inactive": false}, "ae_exposure_max": {"min": 1, "max": 1000000, "step": 1, "default": 66666, "value": 66666, "kind": "int", "menu": {}, "readonly": false, "inactive": false}, "exposure_mode": {"min": 0, "max": 2, "default": 1, "value": 1, "kind": "menu", "step": 1, "menu": {"0": "Manual Mode", "1": "Auto Mode", "2": "AGC Mode"}, "readonly": false, "inactive": false}}}, {"identity": "003b", "entity": "tevs 14-003b", "device": "/dev/v4l-subdev4", "video": "/dev/video4", "label": "Camera 3 (bottom left)", "controls": {"brightness": {"min": 0, "max": 8192, "step": 1, "default": 4096, "value": 4096, "kind": "int", "menu": {}, "readonly": false, "inactive": false}, "exposure": {"min": 1, "max": 1000000, "step": 1, "default": 10000, "value": 10000, "kind": "int", "menu": {}, "readonly": false, "inactive": false}, "gain": {"min": 1, "max": 64, "step": 1, "default": 1, "value": 1, "kind": "int", "menu": {}, "readonly": false, "inactive": false}, "power_line_frequency": {"min": 0, "max": 3, "default": 0, "value": 0, "kind": "menu", "step": 1, "menu": {"0": "Disabled", "1": "50 Hz", "2": "60 Hz", "3": "Auto"}, "readonly": false, "inactive": false}, "max_fps": {"min": 1, "max": 255, "step": 1, "default": 30, "value": 30, "kind": "int", "menu": {}, "readonly": false, "inactive": false}, "ae_exposure_upper": {"min": 1, "max": 1000000, "step": 1, "default": 8333, "value": 8333, "kind": "int", "menu": {}, "readonly": false, "inactive": false}, "ae_exposure_max": {"min": 1, "max": 1000000, "step": 1, "default": 66666, "value": 66666, "kind": "int", "menu": {}, "readonly": false, "inactive": false}, "exposure_mode": {"min": 0, "max": 2, "default": 1, "value": 1, "kind": "menu", "step": 1, "menu": {"0": "Manual Mode", "1": "Auto Mode", "2": "AGC Mode"}, "readonly": false, "inactive": false}}}, {"identity": "003c", "entity": "tevs 15-003c", "device": "/dev/v4l-subdev3", "video": "/dev/video5", "label": "Camera 4 (bottom right)", "controls": {"brightness": {"min": 0, "max": 8192, "step": 1, "default": 4096, "value": 4096, "kind": "int", "menu": {}, "readonly": false, "inactive": false}, "exposure": {"min": 1, "max": 1000000, "step": 1, "default": 10000, "value": 10000, "kind": "int", "menu": {}, "readonly": false, "inactive": false}, "gain": {"min": 1, "max": 64, "step": 1, "default": 1, "value": 1, "kind": "int", "menu": {}, "readonly": false, "inactive": false}, "power_line_frequency": {"min": 0, "max": 3, "default": 0, "value": 0, "kind": "menu", "step": 1, "menu": {"0": "Disabled", "1": "50 Hz", "2": "60 Hz", "3": "Auto"}, "readonly": false, "inactive": false}, "max_fps": {"min": 1, "max": 255, "step": 1, "default": 30, "value": 30, "kind": "int", "menu": {}, "readonly": false, "inactive": false}, "ae_exposure_upper": {"min": 1, "max": 1000000, "step": 1, "default": 8333, "value": 8333, "kind": "int", "menu": {}, "readonly": false, "inactive": false}, "ae_exposure_max": {"min": 1, "max": 1000000, "step": 1, "default": 66666, "value": 66666, "kind": "int", "menu": {}, "readonly": false, "inactive": false}, "exposure_mode": {"min": 0, "max": 2, "default": 1, "value": 1, "kind": "menu", "step": 1, "menu": {"0": "Manual Mode", "1": "Auto Mode", "2": "AGC Mode"}, "readonly": false, "inactive": false}}}], "message": ""}

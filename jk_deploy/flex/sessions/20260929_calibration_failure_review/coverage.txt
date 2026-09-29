@@ -1,0 +1,12 @@
+Name                                      Stmts   Miss Branch BrPart  Cover   Missing
+-------------------------------------------------------------------------------------
+jk_deploy/flex/boot/run_boot.py              70      5     24      2    93%   34, 43->47, 83-86
+jk_deploy/flex/calibrate_repeated.py        125     24     56      6    81%   58-59, 63-64, 70, 93-94, 111->exit, 112, 127-142, 147
+jk_deploy/flex/calibrate_table.py           122     35     41     10    71%   54-55, 57->exit, 58, 73-79, 83, 87-90, 93, 101, 106-109, 135-149, 153
+jk_deploy/flex/capture_table_bursts.py       90     18     24      2    82%   78->85, 89-105, 109
+jk_deploy/flex/refine_clean_table.py         59      2     26      2    95%   32, 77
+jk_deploy/flex/stage_table.py                78     38     34      1    53%   48-81, 85-94, 99
+jk_deploy/flex/ui/calibration_worker.py     249     28     76      3    90%   24-25, 63, 150->147, 161-163, 235-236, 242-243, 252-253, 277-291, 295
+jk_deploy/flex/ui/capture_recovery.py        38      3     32      3    91%   15, 23, 26
+-------------------------------------------------------------------------------------
+TOTAL                                       831    153    313     29    82%

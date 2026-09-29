@@ -1,0 +1,406 @@
+{
+  "schema_version": 1,
+  "status": "complete",
+  "started_utc": "2026-09-29T21:02:59.751146+00:00",
+  "width": 1920,
+  "height": 1200,
+  "format": "UYVY",
+  "frames_per_burst": 12,
+  "warmup_frames": 60,
+  "gap_seconds": 1.0,
+  "passes": [
+    {
+      "directory": "pass01",
+      "started_utc": "2026-09-29T21:03:01.432597+00:00",
+      "inputs": [
+        {
+          "input": 0,
+          "device": "/dev/video2",
+          "started_utc": "2026-09-29T21:03:01.452010+00:00",
+          "finished_utc": "2026-09-29T21:03:06.229119+00:00",
+          "bytes": 55296000
+        },
+        {
+          "input": 1,
+          "device": "/dev/video3",
+          "started_utc": "2026-09-29T21:03:06.249816+00:00",
+          "finished_utc": "2026-09-29T21:03:11.060329+00:00",
+          "bytes": 55296000
+        },
+        {
+          "input": 2,
+          "device": "/dev/video4",
+          "started_utc": "2026-09-29T21:03:11.080836+00:00",
+          "finished_utc": "2026-09-29T21:03:15.841672+00:00",
+          "bytes": 55296000
+        },
+        {
+          "input": 3,
+          "device": "/dev/video5",
+          "started_utc": "2026-09-29T21:03:15.862501+00:00",
+          "finished_utc": "2026-09-29T21:03:20.639351+00:00",
+          "bytes": 55296000
+        }
+      ],
+      "finished_utc": "2026-09-29T21:03:20.639602+00:00"
+    },
+    {
+      "directory": "pass02",
+      "started_utc": "2026-09-29T21:03:21.640699+00:00",
+      "inputs": [
+        {
+          "input": 0,
+          "device": "/dev/video2",
+          "started_utc": "2026-09-29T21:03:21.660650+00:00",
+          "finished_utc": "2026-09-29T21:03:26.484492+00:00",
+          "bytes": 55296000
+        },
+        {
+          "input": 1,
+          "device": "/dev/video3",
+          "started_utc": "2026-09-29T21:03:26.505545+00:00",
+          "finished_utc": "2026-09-29T21:03:31.464712+00:00",
+          "bytes": 55296000
+        },
+        {
+          "input": 2,
+          "device": "/dev/video4",
+          "started_utc": "2026-09-29T21:03:31.485628+00:00",
+          "finished_utc": "2026-09-29T21:03:36.360966+00:00",
+          "bytes": 55296000
+        },
+        {
+          "input": 3,
+          "device": "/dev/video5",
+          "started_utc": "2026-09-29T21:03:36.381800+00:00",
+          "finished_utc": "2026-09-29T21:03:41.266621+00:00",
+          "bytes": 55296000
+        }
+      ],
+      "finished_utc": "2026-09-29T21:03:41.266830+00:00"
+    },
+    {
+      "directory": "pass03",
+      "started_utc": "2026-09-29T21:03:42.267819+00:00",
+      "inputs": [
+        {
+          "input": 0,
+          "device": "/dev/video2",
+          "started_utc": "2026-09-29T21:03:42.288097+00:00",
+          "finished_utc": "2026-09-29T21:03:47.183455+00:00",
+          "bytes": 55296000
+        },
+        {
+          "input": 1,
+          "device": "/dev/video3",
+          "started_utc": "2026-09-29T21:03:47.203701+00:00",
+          "finished_utc": "2026-09-29T21:03:52.432026+00:00",
+          "bytes": 55296000
+        },
+        {
+          "input": 2,
+          "device": "/dev/video4",
+          "started_utc": "2026-09-29T21:03:52.453732+00:00",
+          "finished_utc": "2026-09-29T21:03:57.357127+00:00",
+          "bytes": 55296000
+        },
+        {
+          "input": 3,
+          "device": "/dev/video5",
+          "started_utc": "2026-09-29T21:03:57.377428+00:00",
+          "finished_utc": "2026-09-29T21:04:02.258289+00:00",
+          "bytes": 55296000
+        }
+      ],
+      "finished_utc": "2026-09-29T21:04:02.258539+00:00"
+    }
+  ],
+  "commands": [
+    [
+      "/opt/jk-ti-srv-flex/run_flex_stitch.sh",
+      "stop"
+    ],
+    [
+      "env",
+      "CAM_WIDTH=1920",
+      "CAM_HEIGHT=1200",
+      "/opt/jk-ti-srv-flex/run_flex_four.sh",
+      "configure"
+    ],
+    [
+      "media-ctl",
+      "-d",
+      "/dev/media0",
+      "-p"
+    ],
+    [
+      "media-ctl",
+      "-d",
+      "/dev/media0",
+      "-e",
+      "30102000.ticsi2rx context 1"
+    ],
+    [
+      "v4l2-ctl",
+      "-d",
+      "/dev/video2",
+      "--get-fmt-video"
+    ],
+    [
+      "v4l2-ctl",
+      "-d",
+      "/dev/video2",
+      "--stream-mmap=4",
+      "--stream-skip=60",
+      "--stream-count=12",
+      "--stream-to=/root/jk-calibration-jobs/20260929T210046Z_5ce457/raw_clear/pass01/input0.uyvy"
+    ],
+    [
+      "media-ctl",
+      "-d",
+      "/dev/media0",
+      "-e",
+      "30102000.ticsi2rx context 2"
+    ],
+    [
+      "v4l2-ctl",
+      "-d",
+      "/dev/video3",
+      "--get-fmt-video"
+    ],
+    [
+      "v4l2-ctl",
+      "-d",
+      "/dev/video3",
+      "--stream-mmap=4",
+      "--stream-skip=60",
+      "--stream-count=12",
+      "--stream-to=/root/jk-calibration-jobs/20260929T210046Z_5ce457/raw_clear/pass01/input1.uyvy"
+    ],
+    [
+      "media-ctl",
+      "-d",
+      "/dev/media0",
+      "-e",
+      "30102000.ticsi2rx context 3"
+    ],
+    [
+      "v4l2-ctl",
+      "-d",
+      "/dev/video4",
+      "--get-fmt-video"
+    ],
+    [
+      "v4l2-ctl",
+      "-d",
+      "/dev/video4",
+      "--stream-mmap=4",
+      "--stream-skip=60",
+      "--stream-count=12",
+      "--stream-to=/root/jk-calibration-jobs/20260929T210046Z_5ce457/raw_clear/pass01/input2.uyvy"
+    ],
+    [
+      "media-ctl",
+      "-d",
+      "/dev/media0",
+      "-e",
+      "30102000.ticsi2rx context 4"
+    ],
+    [
+      "v4l2-ctl",
+      "-d",
+      "/dev/video5",
+      "--get-fmt-video"
+    ],
+    [
+      "v4l2-ctl",
+      "-d",
+      "/dev/video5",
+      "--stream-mmap=4",
+      "--stream-skip=60",
+      "--stream-count=12",
+      "--stream-to=/root/jk-calibration-jobs/20260929T210046Z_5ce457/raw_clear/pass01/input3.uyvy"
+    ],
+    [
+      "media-ctl",
+      "-d",
+      "/dev/media0",
+      "-e",
+      "30102000.ticsi2rx context 1"
+    ],
+    [
+      "v4l2-ctl",
+      "-d",
+      "/dev/video2",
+      "--get-fmt-video"
+    ],
+    [
+      "v4l2-ctl",
+      "-d",
+      "/dev/video2",
+      "--stream-mmap=4",
+      "--stream-skip=60",
+      "--stream-count=12",
+      "--stream-to=/root/jk-calibration-jobs/20260929T210046Z_5ce457/raw_clear/pass02/input0.uyvy"
+    ],
+    [
+      "media-ctl",
+      "-d",
+      "/dev/media0",
+      "-e",
+      "30102000.ticsi2rx context 2"
+    ],
+    [
+      "v4l2-ctl",
+      "-d",
+      "/dev/video3",
+      "--get-fmt-video"
+    ],
+    [
+      "v4l2-ctl",
+      "-d",
+      "/dev/video3",
+      "--stream-mmap=4",
+      "--stream-skip=60",
+      "--stream-count=12",
+      "--stream-to=/root/jk-calibration-jobs/20260929T210046Z_5ce457/raw_clear/pass02/input1.uyvy"
+    ],
+    [
+      "media-ctl",
+      "-d",
+      "/dev/media0",
+      "-e",
+      "30102000.ticsi2rx context 3"
+    ],
+    [
+      "v4l2-ctl",
+      "-d",
+      "/dev/video4",
+      "--get-fmt-video"
+    ],
+    [
+      "v4l2-ctl",
+      "-d",
+      "/dev/video4",
+      "--stream-mmap=4",
+      "--stream-skip=60",
+      "--stream-count=12",
+      "--stream-to=/root/jk-calibration-jobs/20260929T210046Z_5ce457/raw_clear/pass02/input2.uyvy"
+    ],
+    [
+      "media-ctl",
+      "-d",
+      "/dev/media0",
+      "-e",
+      "30102000.ticsi2rx context 4"
+    ],
+    [
+      "v4l2-ctl",
+      "-d",
+      "/dev/video5",
+      "--get-fmt-video"
+    ],
+    [
+      "v4l2-ctl",
+      "-d",
+      "/dev/video5",
+      "--stream-mmap=4",
+      "--stream-skip=60",
+      "--stream-count=12",
+      "--stream-to=/root/jk-calibration-jobs/20260929T210046Z_5ce457/raw_clear/pass02/input3.uyvy"
+    ],
+    [
+      "media-ctl",
+      "-d",
+      "/dev/media0",
+      "-e",
+      "30102000.ticsi2rx context 1"
+    ],
+    [
+      "v4l2-ctl",
+      "-d",
+      "/dev/video2",
+      "--get-fmt-video"
+    ],
+    [
+      "v4l2-ctl",
+      "-d",
+      "/dev/video2",
+      "--stream-mmap=4",
+      "--stream-skip=60",
+      "--stream-count=12",
+      "--stream-to=/root/jk-calibration-jobs/20260929T210046Z_5ce457/raw_clear/pass03/input0.uyvy"
+    ],
+    [
+      "media-ctl",
+      "-d",
+      "/dev/media0",
+      "-e",
+      "30102000.ticsi2rx context 2"
+    ],
+    [
+      "v4l2-ctl",
+      "-d",
+      "/dev/video3",
+      "--get-fmt-video"
+    ],
+    [
+      "v4l2-ctl",
+      "-d",
+      "/dev/video3",
+      "--stream-mmap=4",
+      "--stream-skip=60",
+      "--stream-count=12",
+      "--stream-to=/root/jk-calibration-jobs/20260929T210046Z_5ce457/raw_clear/pass03/input1.uyvy"
+    ],
+    [
+      "media-ctl",
+      "-d",
+      "/dev/media0",
+      "-e",
+      "30102000.ticsi2rx context 3"
+    ],
+    [
+      "v4l2-ctl",
+      "-d",
+      "/dev/video4",
+      "--get-fmt-video"
+    ],
+    [
+      "v4l2-ctl",
+      "-d",
+      "/dev/video4",
+      "--stream-mmap=4",
+      "--stream-skip=60",
+      "--stream-count=12",
+      "--stream-to=/root/jk-calibration-jobs/20260929T210046Z_5ce457/raw_clear/pass03/input2.uyvy"
+    ],
+    [
+      "media-ctl",
+      "-d",
+      "/dev/media0",
+      "-e",
+      "30102000.ticsi2rx context 4"
+    ],
+    [
+      "v4l2-ctl",
+      "-d",
+      "/dev/video5",
+      "--get-fmt-video"
+    ],
+    [
+      "v4l2-ctl",
+      "-d",
+      "/dev/video5",
+      "--stream-mmap=4",
+      "--stream-skip=60",
+      "--stream-count=12",
+      "--stream-to=/root/jk-calibration-jobs/20260929T210046Z_5ce457/raw_clear/pass03/input3.uyvy"
+    ],
+    [
+      "/root/jk-calibration-jobs/20260929T210046Z_5ce457/resume_previous.sh"
+    ]
+  ],
+  "finished_utc": "2026-09-29T21:04:02.258586+00:00",
+  "resumed_with": "/root/jk-calibration-jobs/20260929T210046Z_5ce457/resume_previous.sh"
+}

@@ -1,0 +1,6 @@
+# Explicitly retain the reviewed test evidence despite the SDK-wide log ignore.
+!job.log
+!jk-flex-review-tests.log
+!jk-flex-target-tests.log
+!jk-flex-qt-tests.log
+!committed-export-tests.log

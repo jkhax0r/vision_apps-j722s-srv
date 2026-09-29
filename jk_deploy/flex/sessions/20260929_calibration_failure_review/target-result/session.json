@@ -1,0 +1,328 @@
+{
+  "schema_version": 2,
+  "description": "Two-stage table fit: marked identity/crop, unobstructed checker refinement",
+  "capture_order": [
+    0,
+    1,
+    2,
+    3
+  ],
+  "front_input": 0,
+  "corner_ids_clockwise_from_front_right": [
+    1,
+    2,
+    3,
+    4
+  ],
+  "camera_names": [
+    "input0 front",
+    "input1 right",
+    "input2 rear",
+    "input3 left"
+  ],
+  "alignment_source": "Unordered ArUco DICT_4X4_50 IDs and integer checker grids",
+  "marker_selection": {
+    "selected_ids": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "ignored_unshared_ids": [
+      {
+        "input": 2,
+        "ids": [
+          17
+        ]
+      }
+    ]
+  },
+  "aligned_models": [
+    {
+      "input": 0,
+      "rotation": [
+        [
+          -1,
+          0
+        ],
+        [
+          0,
+          -1
+        ]
+      ],
+      "shift": [
+        0,
+        0
+      ],
+      "marker_rms_cells": 0.0
+    },
+    {
+      "input": 1,
+      "rotation": [
+        [
+          0,
+          -1
+        ],
+        [
+          1,
+          0
+        ]
+      ],
+      "shift": [
+        14,
+        20
+      ],
+      "marker_rms_cells": 0.08355497578376214
+    },
+    {
+      "input": 2,
+      "rotation": [
+        [
+          1,
+          0
+        ],
+        [
+          0,
+          1
+        ]
+      ],
+      "shift": [
+        2,
+        24
+      ],
+      "marker_rms_cells": 0.09648207015024447
+    },
+    {
+      "input": 3,
+      "rotation": [
+        [
+          0,
+          -1
+        ],
+        [
+          1,
+          0
+        ]
+      ],
+      "shift": [
+        -9,
+        16
+      ],
+      "marker_rms_cells": 0.23453332790876424
+    }
+  ],
+  "marker_disagreement_cells": {
+    "1": 0.08355497578376214,
+    "4": 0.12185939914722976,
+    "2": 0.09648207015024447,
+    "3": 0.308483468988852
+  },
+  "checker_phase_verification": [
+    {
+      "median_luma_even_odd": [
+        253.0,
+        25.0
+      ],
+      "white_parity": 0
+    },
+    {
+      "median_luma_even_odd": [
+        253.0,
+        24.0
+      ],
+      "white_parity": 0
+    },
+    {
+      "median_luma_even_odd": [
+        237.0,
+        23.0
+      ],
+      "white_parity": 0
+    },
+    {
+      "median_luma_even_odd": [
+        235.0,
+        16.0
+      ],
+      "white_parity": 0
+    }
+  ],
+  "table_corner_estimates_cells": {
+    "1": [
+      23.631028364042677,
+      -11.764002569276549
+    ],
+    "4": [
+      -19.61855631715015,
+      -11.777795087051786
+    ],
+    "2": [
+      23.645177910323852,
+      32.97130608173731
+    ],
+    "3": [
+      -20.28463223773296,
+      33.16070493936635
+    ]
+  },
+  "crop_cells": [
+    -21.576711514650427,
+    -22.194615014918078,
+    43.15342302930085,
+    44.389230029836156
+  ],
+  "view_frame": {
+    "origin_cells": [
+      1.8432544298708544,
+      10.64755334119383
+    ],
+    "axes": [
+      [
+        0.9999965474146606,
+        -0.0026277668765559703
+      ],
+      [
+        0.002627766876556026,
+        0.9999965474146608
+      ]
+    ]
+  },
+  "crop_quality": {
+    "rectangle_max_error_cells": 0.31353350403275787,
+    "table_corner_disagreement_cells": {
+      "1": 0.02758785448129411,
+      "4": 0.22721949275683861,
+      "2": 0.2481687244909943,
+      "3": 0.9324112431244499
+    },
+    "inset_percent_per_edge": 0.5
+  },
+  "checker_support": [
+    {
+      "input": 0,
+      "farthest_marker_corner_from_checker_cells": 2.7523345099860346
+    },
+    {
+      "input": 1,
+      "farthest_marker_corner_from_checker_cells": 2.7273109753649165
+    },
+    {
+      "input": 2,
+      "farthest_marker_corner_from_checker_cells": 2.8469101566733452
+    },
+    {
+      "input": 3,
+      "farthest_marker_corner_from_checker_cells": 4.195268813189368
+    }
+  ],
+  "feather_cells": 1.5,
+  "holder_geometry": {
+    "version": 1,
+    "units": "mm",
+    "dictionary": "DICT_4X4_50",
+    "ids": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "plate_side": 130.0,
+    "plate_thickness": 2.0,
+    "fence_depth": 16.0,
+    "fence_thickness": 3.0,
+    "corner_relief": 40.0,
+    "label_size": 100.0,
+    "marker_black_outer_size": 80.0,
+    "quiet_margin": 10.0,
+    "label_start_xy": [
+      22,
+      22
+    ],
+    "frame": "Virtual table corner is (0,0,0); x/y point inward, z points above table",
+    "marker_corners_canonical_xy": [
+      [
+        32,
+        112
+      ],
+      [
+        112,
+        112
+      ],
+      [
+        112,
+        32
+      ],
+      [
+        32,
+        32
+      ]
+    ],
+    "marker_center_xy": [
+      72,
+      72
+    ],
+    "marker_plane_z_without_paper": 2.0,
+    "orientation": "Clipped lower-left label corner toward chamfered outside table corner",
+    "table_registration": "Valid only when both fences contact straight vertical table edges",
+    "flat_plate_registration": "No edge registration; locate crop corners separately",
+    "volumes_mm3": {
+      "table_corner_cap": 43950.54400000001,
+      "flat_marker_plate": 32190.544
+    },
+    "status": "CAD and synthetic detection checks only; physical print and live camera test pending"
+  },
+  "notes": "Static flat-plane candidate, not a new intrinsic fit or metric accuracy guarantee. Labels must have correct orientation on seated holders. Front camera uses the existing inverted native image convention.",
+  "clean_refinement": {
+    "passed": true,
+    "reference": "/root/jk-calibration-jobs/20260929T212624Z_b08624/marked_result",
+    "reference_report_sha256": "4fdef6efc98e1fea321ffcaaf83b890deb67218f00a4a81e3f829ea1a2c3f370",
+    "reference_session_sha256": "71887c91dacabf32cf42f4066c3234992d9421efe598148f0fc25619d5d4d6c0",
+    "cameras": [
+      {
+        "input": 0,
+        "shared_intersections": 834,
+        "shared_hull_fraction": 0.9908347536735174,
+        "shared_pixel_rms": 0.3322733667316022,
+        "shared_pixel_p95": 0.5964914166335853,
+        "new_checker_intersections": 84,
+        "outside_old_checker_hull": 29,
+        "coordinate_rms_cells": 0.0,
+        "warning": ""
+      },
+      {
+        "input": 1,
+        "shared_intersections": 958,
+        "shared_hull_fraction": 0.9963735131317158,
+        "shared_pixel_rms": 0.2991550288246931,
+        "shared_pixel_p95": 0.5973471354120804,
+        "new_checker_intersections": 67,
+        "outside_old_checker_hull": 29,
+        "coordinate_rms_cells": 0.0,
+        "warning": ""
+      },
+      {
+        "input": 2,
+        "shared_intersections": 878,
+        "shared_hull_fraction": 0.9974357815205471,
+        "shared_pixel_rms": 0.11512670466539666,
+        "shared_pixel_p95": 0.18266968839230496,
+        "new_checker_intersections": 66,
+        "outside_old_checker_hull": 38,
+        "coordinate_rms_cells": 0.0,
+        "warning": ""
+      },
+      {
+        "input": 3,
+        "shared_intersections": 912,
+        "shared_hull_fraction": 0.9923782192784177,
+        "shared_pixel_rms": 0.13553216038494276,
+        "shared_pixel_p95": 0.24036711056752436,
+        "new_checker_intersections": 102,
+        "outside_old_checker_hull": 42,
+        "coordinate_rms_cells": 0.0,
+        "warning": ""
+      }
+    ],
+    "crop_preserved": true
+  }
+}
