@@ -1,0 +1,4 @@
+captures/*.uyvy
+captures/*.png
+*.png
+__pycache__/

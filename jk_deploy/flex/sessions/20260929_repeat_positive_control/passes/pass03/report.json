@@ -1,0 +1,185 @@
+{
+  "status": "passed",
+  "deployment_policy": "repeat-child",
+  "started_utc": "2026-09-29T17:28:04.473333+00:00",
+  "source": "/home/jkauf/ti-processor-sdk-rtos-j722s-evm-11_00_00_06/vision_apps-j722s-srv-pair-test/jk_deploy/flex/sessions/20260929_repeat_positive_control/prepared/pass03",
+  "steps": [
+    {
+      "command": [
+        "/usr/bin/python3",
+        "/home/jkauf/ti-processor-sdk-rtos-j722s-evm-11_00_00_06/vision_apps-j722s-srv-pair-test/jk_deploy/flex/fit_floor.py",
+        "/home/jkauf/ti-processor-sdk-rtos-j722s-evm-11_00_00_06/vision_apps-j722s-srv-pair-test/jk_deploy/flex/sessions/20260929_repeat_positive_control/passes/pass03"
+      ],
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "/usr/bin/python3",
+        "/home/jkauf/ti-processor-sdk-rtos-j722s-evm-11_00_00_06/vision_apps-j722s-srv-pair-test/jk_deploy/flex/align_markers.py",
+        "/home/jkauf/ti-processor-sdk-rtos-j722s-evm-11_00_00_06/vision_apps-j722s-srv-pair-test/jk_deploy/flex/sessions/20260929_repeat_positive_control/passes/pass03",
+        "--front-input",
+        "0",
+        "--geometry",
+        "/home/jkauf/ti-processor-sdk-rtos-j722s-evm-11_00_00_06/vision_apps-j722s-srv-pair-test/jk_deploy/flex/sessions/20260929_repeat_positive_control/passes/pass03/holder_geometry.json",
+        "--inset-percent",
+        "0.5"
+      ],
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "/usr/bin/python3",
+        "/home/jkauf/ti-processor-sdk-rtos-j722s-evm-11_00_00_06/vision_apps-j722s-srv-pair-test/jk_deploy/flex/bake_floor.py",
+        "/home/jkauf/ti-processor-sdk-rtos-j722s-evm-11_00_00_06/vision_apps-j722s-srv-pair-test/jk_deploy/flex/sessions/20260929_repeat_positive_control/passes/pass03"
+      ],
+      "exit_code": 0
+    }
+  ],
+  "inputs_sha256": {
+    "input0.png": "b1df18f8260f15f85e767a810cac0e2e9120d8ef99e2918145528e8a175ce261",
+    "input1.png": "6d096f3f7698efaf8da531080332920687d4f9192c2027585840280e493a06ca",
+    "input2.png": "b75fdaa0f858cc44162cff84e558c09478c22bf6dcc83f61bfc299494c2b9c4c",
+    "input3.png": "ade18400a661e7697a769e2199d412049576c6407e2d83aaffe9cd859df48511",
+    "input0.corners.npz": "4870c9c08127b1b525e612d9d2d2d2e100de5a8466ec96308417ad70b2bf2d35",
+    "input1.corners.npz": "d52653d66e56055b30bfd9cc780ff7a74f5a4760c4a7c0a8415c93849bb2cacd",
+    "input2.corners.npz": "5ceea10e4ff41c7459d041921f5c1f80b2db06fc21dcf8b94e35b3cd8135bbe4",
+    "input3.corners.npz": "d3fce69731e2066674e3df0f64c886c72562e276339cb055d1472b6eaf4896dd"
+  },
+  "versions": {
+    "python": "3.10.12 (main, Aug 31 2026, 10:18:17) [GCC 11.4.0]",
+    "opencv": "4.12.0",
+    "numpy": "2.2.6",
+    "scipy": "1.15.3"
+  },
+  "source_sha256": {
+    "fit_floor.py": "dcbd031063e89fe87dbd0c6d4adc7e5d714aff8db469201cb3e28e8cce3c30a1",
+    "prepare_captures.py": "31c52f832757eac3b38102f05de2fb7de9571a65ed758f5f60fce703f7c8471c",
+    "align_markers.py": "892231e5f64ceb834ffa068cf5b7737bf98ecb045f3450d87f3c5948708fa9a7",
+    "test_marker_alignment.py": "f139a466f2d38d33b3404aa5e1e617397a7cf17965a32654bb20fd93dac1ab2c",
+    "bake_floor.py": "8832b13967055e3795e2aac31c69c7a81fc1492f1055f36445bd6b07e8a0e10f",
+    "detect_table.py": "7c3da722713df0c21e8c43897438c217a744f2e9ce2025229246483acb115f92",
+    "test_lut.py": "80ceac92d2455071fa046bead4bd367d01d21cfd44b0b5a586bfd2528e56e6f0",
+    "repeat_consistency.py": "10cbb1549858f97b46b25d249664529152c90335077a5c3f8cbbc02a336e946f",
+    "capture_table_bursts.py": "5854134bb6be89e33eab2cc698536fc8c12a5d19d5eec5e8ad1adc147a1ba0ab",
+    "stage_table.py": "33bde78899d2dc077983e5bf9fb1b3d721f76f622bc070c4dbc41dec28655913",
+    "test_table_calibration.py": "20697b27b02959cc5533326d70a7b15a258cf90b4590aecdfca9e798d8f1b7de",
+    "calibrate_table.py": "faae780e08ec47698b46cca4db08c4a45d88d6faa16ef0dde1b65e8cc2e564cc",
+    "calibrate_repeated.py": "b78056d85d0d3045c1a02aa11cfaf6438bbb0bc00070537b699da7385965a940",
+    "test_floor.py": "e3bc133e2231e3014a5877676d027ffb231412246127c4874d1513e23b155e67",
+    "make_lut.py": "1a0a39483697005ddbeff9ef9bab952845dd447039e4283fd25f55c1d5330152",
+    "test_repeated_calibration.py": "c8bacefdfa3803ca166a40a4063da649fb7af4b8111e236efd5ff52a258dbcc4",
+    "average_burst.py": "7c95256a19ec525f71316af0546855bb8009878a1a3a5226e48e018c76dc1dd4",
+    "fit_intrinsics.py": "8973a4f0b269b8847f27128b578633eb240071970ff099c7ae73587b46319e85"
+  },
+  "lens_sources": [
+    {
+      "name": "gmsl0_intrinsics.json",
+      "sha256": "8fea0d871399323a5a1b9af7c6c5203b506e507878840c8e5f9568b5cde2de2a",
+      "K": [
+        [
+          1066.9513685133998,
+          0.0,
+          959.5
+        ],
+        [
+          0.0,
+          1059.3425395809102,
+          599.5
+        ],
+        [
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "D": [
+        -0.07167352725117174,
+        -0.0016674136364622336,
+        0.0,
+        0.0
+      ],
+      "training_rms_px": 3.163458716299339
+    },
+    {
+      "name": "gmsl1_intrinsics.json",
+      "sha256": "071c9b51962b01881dd7f41fce987ce244a47bf3ae4245aba1ee28be4348cdb9",
+      "K": [
+        [
+          1037.3807205025873,
+          0.0,
+          959.5
+        ],
+        [
+          0.0,
+          1043.4669996028886,
+          599.5
+        ],
+        [
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "D": [
+        -0.04645480433222823,
+        -0.009472503251478746,
+        0.0,
+        0.0
+      ],
+      "training_rms_px": 4.6765930619775515
+    }
+  ],
+  "capture_order": [
+    0,
+    1,
+    2,
+    3
+  ],
+  "corner_ids_clockwise_from_front_right": [
+    1,
+    2,
+    3,
+    4
+  ],
+  "artifact_sha256": {
+    "four_mesh.bin": "5e29568bfff83b33cc67fcb94ed0ffbf61312fb066fae36d8de2ba668d1d85f3",
+    "four_blend.bin": "4fe17438c987d86766212af88d6d895d40a1e2afa2192fc4589f57c6d3294005"
+  },
+  "crop_quality": {
+    "rectangle_max_error_cells": 0.7207179309272795,
+    "table_corner_disagreement_cells": {
+      "4": 0.20921221033145337,
+      "1": 0.42837318808439473,
+      "2": 0.8249771047846639,
+      "3": 0.48871273302071533
+    },
+    "inset_percent_per_edge": 0.5
+  },
+  "crop_coverage": {
+    "sampled_pixels": 31680,
+    "covered_fraction": 0.9950757575757576
+  },
+  "heldout_grid_errors": [
+    {
+      "points": 68,
+      "rms_px": 0.9670503800610029,
+      "p95_px": 1.8469996807137172
+    },
+    {
+      "points": 65,
+      "rms_px": 0.7262607352342103,
+      "p95_px": 1.5186830490656857
+    },
+    {
+      "points": 68,
+      "rms_px": 0.7275049319881004,
+      "p95_px": 1.45245807894099
+    },
+    {
+      "points": 73,
+      "rms_px": 0.5465123517178679,
+      "p95_px": 0.970623576829221
+    }
+  ],
+  "finished_utc": "2026-09-29T17:28:21.488241+00:00"
+}

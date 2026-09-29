@@ -1,0 +1,8 @@
+/captures/*
+*.png
+*.uyvy
+
+# Keep only the source fixtures needed by two-stage refinement tests.
+!/captures/input[0-3].png
+!/captures/input[0-3].corners.npz
+!/captures/input[0-3].floor.npz

@@ -1,0 +1,7 @@
+captures/*.uyvy
+captures/*.png
+*.png
+__pycache__/
+
+# Native PNG fixtures used by marker and repeated-calibration tests.
+!captures/input[0-3].png

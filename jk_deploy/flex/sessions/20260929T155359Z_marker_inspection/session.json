@@ -1,0 +1,152 @@
+{
+  "description": "Corner-marker preview using the latest stationary four-camera capture",
+  "capture_order": [
+    0,
+    1,
+    2,
+    3
+  ],
+  "camera_names": [
+    "1 front",
+    "2 right",
+    "3 rear",
+    "4 left"
+  ],
+  "alignment_source": "ArUco DICT_4X4_50 canonical corners and integer checker grids",
+  "aligned_models": [
+    {
+      "input": 0,
+      "rotation": [
+        [
+          -1,
+          0
+        ],
+        [
+          0,
+          -1
+        ]
+      ],
+      "shift": [
+        0,
+        0
+      ],
+      "marker_rms_cells": 0.0
+    },
+    {
+      "input": 1,
+      "rotation": [
+        [
+          -1,
+          0
+        ],
+        [
+          0,
+          -1
+        ]
+      ],
+      "shift": [
+        10,
+        2
+      ],
+      "marker_rms_cells": 0.4653513075660138
+    },
+    {
+      "input": 2,
+      "rotation": [
+        [
+          0,
+          1
+        ],
+        [
+          -1,
+          0
+        ]
+      ],
+      "shift": [
+        0,
+        18
+      ],
+      "marker_rms_cells": 0.39971583155899293
+    },
+    {
+      "input": 3,
+      "rotation": [
+        [
+          1,
+          0
+        ],
+        [
+          0,
+          1
+        ]
+      ],
+      "shift": [
+        -9,
+        8
+      ],
+      "marker_rms_cells": 0.21480340234464368
+    }
+  ],
+  "marker_disagreement_cells": {
+    "1": 0.46535130756601384,
+    "2": 0.3997158315589929,
+    "3": 0.2845152779174254,
+    "4": 0.10645214863608862
+  },
+  "checker_phase_verification": [
+    {
+      "median_luma_even_odd": [
+        20.0,
+        244.5
+      ],
+      "white_parity": 1
+    },
+    {
+      "median_luma_even_odd": [
+        27.0,
+        244.0
+      ],
+      "white_parity": 1
+    },
+    {
+      "median_luma_even_odd": [
+        16.0,
+        204.0
+      ],
+      "white_parity": 1
+    },
+    {
+      "median_luma_even_odd": [
+        11.0,
+        221.0
+      ],
+      "white_parity": 1
+    }
+  ],
+  "table_corner_estimates_cells": {
+    "1": [
+      22.159175475088432,
+      -15.144387955098027
+    ],
+    "2": [
+      21.968126364461984,
+      29.94431893697312
+    ],
+    "3": [
+      -22.785922050643915,
+      30.503509407902463
+    ],
+    "4": [
+      -21.492709949712477,
+      -14.62691911076478
+    ]
+  },
+  "crop_cells": [
+    -22.139316000178198,
+    -14.885653532931403,
+    44.202966919953404,
+    45.109567705369194
+  ],
+  "feather_cells": 1.5,
+  "notes": "Preview only, not a completed robust auto-calibration tool. Shared lens prior unchanged. Crop assumes v1 corner-cap label orientation/seating. No new intrinsic fit or metric accuracy claim."
+}

@@ -1,0 +1,6 @@
+captures/*.uyvy
+captures/*.png
+*.png
+
+# Native PNG fixtures used by test_floor.py.
+!captures/input[0-3].png

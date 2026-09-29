@@ -1,0 +1,213 @@
+{
+  "status": "passed",
+  "deployment_policy": "repeat-child",
+  "started_utc": "2026-09-29T17:17:22.059448+00:00",
+  "source": "/home/jkauf/ti-processor-sdk-rtos-j722s-evm-11_00_00_06/vision_apps-j722s-srv-pair-test/jk_deploy/flex/sessions/20260929_repeat_simulation/prepared/pass02",
+  "steps": [
+    {
+      "command": [
+        "/usr/bin/python3",
+        "/home/jkauf/ti-processor-sdk-rtos-j722s-evm-11_00_00_06/vision_apps-j722s-srv-pair-test/jk_deploy/flex/detect_table.py",
+        "/home/jkauf/ti-processor-sdk-rtos-j722s-evm-11_00_00_06/vision_apps-j722s-srv-pair-test/jk_deploy/flex/sessions/20260929_repeat_simulation/passes/pass02/captures/input0.png"
+      ],
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "/usr/bin/python3",
+        "/home/jkauf/ti-processor-sdk-rtos-j722s-evm-11_00_00_06/vision_apps-j722s-srv-pair-test/jk_deploy/flex/detect_table.py",
+        "/home/jkauf/ti-processor-sdk-rtos-j722s-evm-11_00_00_06/vision_apps-j722s-srv-pair-test/jk_deploy/flex/sessions/20260929_repeat_simulation/passes/pass02/captures/input1.png"
+      ],
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "/usr/bin/python3",
+        "/home/jkauf/ti-processor-sdk-rtos-j722s-evm-11_00_00_06/vision_apps-j722s-srv-pair-test/jk_deploy/flex/detect_table.py",
+        "/home/jkauf/ti-processor-sdk-rtos-j722s-evm-11_00_00_06/vision_apps-j722s-srv-pair-test/jk_deploy/flex/sessions/20260929_repeat_simulation/passes/pass02/captures/input2.png"
+      ],
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "/usr/bin/python3",
+        "/home/jkauf/ti-processor-sdk-rtos-j722s-evm-11_00_00_06/vision_apps-j722s-srv-pair-test/jk_deploy/flex/detect_table.py",
+        "/home/jkauf/ti-processor-sdk-rtos-j722s-evm-11_00_00_06/vision_apps-j722s-srv-pair-test/jk_deploy/flex/sessions/20260929_repeat_simulation/passes/pass02/captures/input3.png"
+      ],
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "/usr/bin/python3",
+        "/home/jkauf/ti-processor-sdk-rtos-j722s-evm-11_00_00_06/vision_apps-j722s-srv-pair-test/jk_deploy/flex/fit_floor.py",
+        "/home/jkauf/ti-processor-sdk-rtos-j722s-evm-11_00_00_06/vision_apps-j722s-srv-pair-test/jk_deploy/flex/sessions/20260929_repeat_simulation/passes/pass02"
+      ],
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "/usr/bin/python3",
+        "/home/jkauf/ti-processor-sdk-rtos-j722s-evm-11_00_00_06/vision_apps-j722s-srv-pair-test/jk_deploy/flex/align_markers.py",
+        "/home/jkauf/ti-processor-sdk-rtos-j722s-evm-11_00_00_06/vision_apps-j722s-srv-pair-test/jk_deploy/flex/sessions/20260929_repeat_simulation/passes/pass02",
+        "--front-input",
+        "0",
+        "--geometry",
+        "/home/jkauf/ti-processor-sdk-rtos-j722s-evm-11_00_00_06/vision_apps-j722s-srv-pair-test/jk_deploy/flex/sessions/20260929_repeat_simulation/passes/pass02/holder_geometry.json",
+        "--inset-percent",
+        "0.5"
+      ],
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "/usr/bin/python3",
+        "/home/jkauf/ti-processor-sdk-rtos-j722s-evm-11_00_00_06/vision_apps-j722s-srv-pair-test/jk_deploy/flex/bake_floor.py",
+        "/home/jkauf/ti-processor-sdk-rtos-j722s-evm-11_00_00_06/vision_apps-j722s-srv-pair-test/jk_deploy/flex/sessions/20260929_repeat_simulation/passes/pass02"
+      ],
+      "exit_code": 0
+    }
+  ],
+  "inputs_sha256": {
+    "input0.png": "0d874f83dd7a6a555beb3bdb8419a691d30074a937e4655a91b50a2223a8d700",
+    "input1.png": "7ee536824c138ad1c41a788b1c50217a77486bfa2b4ca1617b168954fd46c0aa",
+    "input2.png": "d5138628f51db4a28fd88cb2684741aecb0b28f12bbffd7de3052b275b7c9dc6",
+    "input3.png": "b1fe139b1452ef38458e57f0353d030643c9806f911b6cf5840fe5f54bb3457e"
+  },
+  "versions": {
+    "python": "3.10.12 (main, Aug 31 2026, 10:18:17) [GCC 11.4.0]",
+    "opencv": "4.12.0",
+    "numpy": "2.2.6",
+    "scipy": "1.15.3"
+  },
+  "source_sha256": {
+    "fit_floor.py": "dcbd031063e89fe87dbd0c6d4adc7e5d714aff8db469201cb3e28e8cce3c30a1",
+    "prepare_captures.py": "31c52f832757eac3b38102f05de2fb7de9571a65ed758f5f60fce703f7c8471c",
+    "align_markers.py": "892231e5f64ceb834ffa068cf5b7737bf98ecb045f3450d87f3c5948708fa9a7",
+    "test_marker_alignment.py": "f139a466f2d38d33b3404aa5e1e617397a7cf17965a32654bb20fd93dac1ab2c",
+    "bake_floor.py": "ef9c2b95048967fab4c67bc651a5ff2c455589d977fab5df9db93debdc8f7fb6",
+    "detect_table.py": "7c3da722713df0c21e8c43897438c217a744f2e9ce2025229246483acb115f92",
+    "test_lut.py": "80ceac92d2455071fa046bead4bd367d01d21cfd44b0b5a586bfd2528e56e6f0",
+    "repeat_consistency.py": "609573ae0c4318b0eb2398e801752b91b4af82f483b27af72e4ed97dd1fffaf9",
+    "capture_table_bursts.py": "5854134bb6be89e33eab2cc698536fc8c12a5d19d5eec5e8ad1adc147a1ba0ab",
+    "stage_table.py": "33bde78899d2dc077983e5bf9fb1b3d721f76f622bc070c4dbc41dec28655913",
+    "test_table_calibration.py": "20697b27b02959cc5533326d70a7b15a258cf90b4590aecdfca9e798d8f1b7de",
+    "calibrate_table.py": "2b6808ed60115f2507b732fe8d2e0d26b2fdd5a04c691e3f9ab5a7711bddff0d",
+    "calibrate_repeated.py": "a114c4fb3eaadc8fd207a96f5e53be55b2943478c0ea8e33152cdcb0c35f2ad0",
+    "test_floor.py": "6ed890d8149a3509474e13f8b3a295a6b822f34c8f467d71739cda88864d87bd",
+    "make_lut.py": "1a0a39483697005ddbeff9ef9bab952845dd447039e4283fd25f55c1d5330152",
+    "test_repeated_calibration.py": "cab07364dc310c000233f401914b253955230f87a5b5263306a3520d2f058727",
+    "average_burst.py": "7c95256a19ec525f71316af0546855bb8009878a1a3a5226e48e018c76dc1dd4",
+    "fit_intrinsics.py": "8973a4f0b269b8847f27128b578633eb240071970ff099c7ae73587b46319e85"
+  },
+  "lens_sources": [
+    {
+      "name": "gmsl0_intrinsics.json",
+      "sha256": "8fea0d871399323a5a1b9af7c6c5203b506e507878840c8e5f9568b5cde2de2a",
+      "K": [
+        [
+          1066.9513685133998,
+          0.0,
+          959.5
+        ],
+        [
+          0.0,
+          1059.3425395809102,
+          599.5
+        ],
+        [
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "D": [
+        -0.07167352725117174,
+        -0.0016674136364622336,
+        0.0,
+        0.0
+      ],
+      "training_rms_px": 3.163458716299339
+    },
+    {
+      "name": "gmsl1_intrinsics.json",
+      "sha256": "071c9b51962b01881dd7f41fce987ce244a47bf3ae4245aba1ee28be4348cdb9",
+      "K": [
+        [
+          1037.3807205025873,
+          0.0,
+          959.5
+        ],
+        [
+          0.0,
+          1043.4669996028886,
+          599.5
+        ],
+        [
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "D": [
+        -0.04645480433222823,
+        -0.009472503251478746,
+        0.0,
+        0.0
+      ],
+      "training_rms_px": 4.6765930619775515
+    }
+  ],
+  "capture_order": [
+    0,
+    1,
+    2,
+    3
+  ],
+  "corner_ids_clockwise_from_front_right": [
+    1,
+    2,
+    3,
+    4
+  ],
+  "artifact_sha256": {
+    "four_mesh.bin": "ca79c1ef38d98736631f899c707ff8c65a5da13fe3e50a27b008bd4243ef2a99",
+    "four_blend.bin": "f1a33bad530f22ca80295192c62b358ac7ded48dc9e0777b55b0ad496ee11912"
+  },
+  "crop_quality": {
+    "rectangle_max_error_cells": 0.675168657314457,
+    "table_corner_disagreement_cells": {
+      "4": 0.2144634010185758,
+      "1": 1.1984669428055605,
+      "2": 0.41866814562839544,
+      "3": 0.8253696911851524
+    },
+    "inset_percent_per_edge": 0.5
+  },
+  "crop_coverage": {
+    "sampled_pixels": 31680,
+    "covered_fraction": 0.9946969696969697
+  },
+  "heldout_grid_errors": [
+    {
+      "points": 67,
+      "rms_px": 0.9324766185274119,
+      "p95_px": 1.7602962720725952
+    },
+    {
+      "points": 64,
+      "rms_px": 0.6745964169190893,
+      "p95_px": 1.406403159711763
+    },
+    {
+      "points": 71,
+      "rms_px": 0.8488273689941028,
+      "p95_px": 1.71410822252499
+    },
+    {
+      "points": 76,
+      "rms_px": 0.5048724002038752,
+      "p95_px": 0.9600525835832558
+    }
+  ],
+  "finished_utc": "2026-09-29T17:18:00.497243+00:00"
+}

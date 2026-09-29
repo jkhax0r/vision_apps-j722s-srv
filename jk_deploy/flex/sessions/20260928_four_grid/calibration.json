@@ -1,0 +1,259 @@
+{
+  "description": "Static checkerboard floor, user camera order clockwise from yellow marker",
+  "capture_order": [
+    0,
+    1,
+    2,
+    3
+  ],
+  "camera_names": [
+    "1 yellow",
+    "2 green",
+    "3 blue",
+    "4 unmarked"
+  ],
+  "marker_candidates": [
+    {
+      "yellow": 0,
+      "green": 0
+    },
+    {
+      "yellow": 0,
+      "green": 0,
+      "blue": 1
+    },
+    {
+      "green": 0,
+      "blue": 0
+    },
+    {
+      "yellow": 0,
+      "blue": 0
+    }
+  ],
+  "crop_cells": [
+    -16,
+    -13,
+    44,
+    45
+  ],
+  "feather_cells": 1.5,
+  "notes": "Marker components visually checked in original images. Cell pitch is not remeasured; fitting uses cells, not millimeters. Lens prior reuses the two earlier profiles; this session is NOT a new intrinsic calibration.",
+  "cameras": [
+    {
+      "input": 0,
+      "rotation": [
+        [
+          1,
+          0
+        ],
+        [
+          0,
+          1
+        ]
+      ],
+      "shift": [
+        0,
+        0
+      ],
+      "marker_rms_cells": 0.0,
+      "corners": 884,
+      "grid_bounds": [
+        [
+          -16.0,
+          -14.0
+        ],
+        [
+          28.0,
+          11.0
+        ]
+      ],
+      "H_global_to_undistorted": [
+        [
+          -0.06518610007178678,
+          -0.000522900438662906,
+          0.3771946951930616
+        ],
+        [
+          7.664971124641165e-05,
+          -0.05834470641494432,
+          -0.03955879444427442
+        ],
+        [
+          -4.6234284798066896e-05,
+          -0.026362874211070503,
+          1.0
+        ]
+      ],
+      "base_rms_px": 2.073571138389394,
+      "heldout_grid_error": {
+        "points": 79,
+        "rms_px": 0.8835228021782857,
+        "p95_px": 1.7863822050140838
+      }
+    },
+    {
+      "input": 1,
+      "rotation": [
+        [
+          0,
+          -1
+        ],
+        [
+          1,
+          0
+        ]
+      ],
+      "shift": [
+        15,
+        8
+      ],
+      "marker_rms_cells": 0.13301696337022983,
+      "corners": 847,
+      "grid_bounds": [
+        [
+          5.0,
+          -13.0
+        ],
+        [
+          29.0,
+          32.0
+        ]
+      ],
+      "H_global_to_undistorted": [
+        [
+          -0.00023668905105741825,
+          -0.1042537712515666,
+          1.0503605608588824
+        ],
+        [
+          0.09785381328627428,
+          0.0002483765800301545,
+          -1.595161712961287
+        ],
+        [
+          0.04244281782841558,
+          -0.00044741006868210083,
+          1.0
+        ]
+      ],
+      "base_rms_px": 3.351560684866671,
+      "heldout_grid_error": {
+        "points": 75,
+        "rms_px": 1.1315364526328147,
+        "p95_px": 2.838154084988502
+      }
+    },
+    {
+      "input": 2,
+      "rotation": [
+        [
+          0,
+          1
+        ],
+        [
+          -1,
+          0
+        ]
+      ],
+      "shift": [
+        7,
+        19
+      ],
+      "marker_rms_cells": 0.294828764289614,
+      "corners": 802,
+      "grid_bounds": [
+        [
+          -16.0,
+          10.0
+        ],
+        [
+          28.0,
+          34.0
+        ]
+      ],
+      "H_global_to_undistorted": [
+        [
+          0.1339975973735546,
+          0.0006039960557969891,
+          -0.8292332444199176
+        ],
+        [
+          -0.0016019411727852893,
+          0.12045119887128232,
+          -2.440206568316834
+        ],
+        [
+          0.00434155994307047,
+          0.05151106323030869,
+          1.0
+        ]
+      ],
+      "base_rms_px": 3.768965210599391,
+      "heldout_grid_error": {
+        "points": 72,
+        "rms_px": 0.9651618504626027,
+        "p95_px": 1.9802397127589966
+      }
+    },
+    {
+      "input": 3,
+      "rotation": [
+        [
+          0,
+          1
+        ],
+        [
+          -1,
+          0
+        ]
+      ],
+      "shift": [
+        -3,
+        7
+      ],
+      "marker_rms_cells": 0.26263618342303097,
+      "corners": 860,
+      "grid_bounds": [
+        [
+          -17.0,
+          -13.0
+        ],
+        [
+          6.0,
+          32.0
+        ]
+      ],
+      "H_global_to_undistorted": [
+        [
+          0.00019142242488882436,
+          0.07256119569633043,
+          -0.7570868998018236
+        ],
+        [
+          -0.06881540261770935,
+          -0.0011204767244351788,
+          -0.2744408560371914
+        ],
+        [
+          -0.026998994511736856,
+          0.002237619544288206,
+          1.0
+        ]
+      ],
+      "base_rms_px": 2.921688233940107,
+      "heldout_grid_error": {
+        "points": 80,
+        "rms_px": 0.8095896600426149,
+        "p95_px": 1.413349986092954
+      }
+    }
+  ],
+  "comparison_layout": true,
+  "method": "Shared lens prior + observed checker-plane homographies and smooth residuals",
+  "limitation": "Floor-only mapping, not new lens intrinsics or general 3D reconstruction",
+  "sha256": {
+    "four_mesh.bin": "d41a4d75f5cbdc9722382a4c64c15af547fc3769500ccf161ba2772023f45c76",
+    "four_blend.bin": "4c836e990977326cf44c766d4f05aeb655dbcb4e53d87741f7a39724d8971f0b"
+  }
+}

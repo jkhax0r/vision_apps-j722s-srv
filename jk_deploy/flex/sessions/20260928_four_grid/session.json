@@ -1,0 +1,14 @@
+{
+  "description": "Static checkerboard floor, user camera order clockwise from yellow marker",
+  "capture_order": [0, 1, 2, 3],
+  "camera_names": ["1 yellow", "2 green", "3 blue", "4 unmarked"],
+  "marker_candidates": [
+    {"yellow": 0, "green": 0},
+    {"yellow": 0, "green": 0, "blue": 1},
+    {"green": 0, "blue": 0},
+    {"yellow": 0, "blue": 0}
+  ],
+  "crop_cells": [-16, -13, 44, 45],
+  "feather_cells": 1.5,
+  "notes": "Marker components visually checked in original images. Cell pitch is not remeasured; fitting uses cells, not millimeters. Lens prior reuses the two earlier profiles; this session is NOT a new intrinsic calibration."
+}

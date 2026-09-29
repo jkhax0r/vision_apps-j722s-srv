@@ -1,0 +1,18 @@
+[
+  {
+    "camera": 1,
+    "status": "passed"
+  },
+  {
+    "camera": 2,
+    "status": "passed"
+  },
+  {
+    "camera": 3,
+    "status": "passed"
+  },
+  {
+    "camera": 4,
+    "status": "passed"
+  }
+]

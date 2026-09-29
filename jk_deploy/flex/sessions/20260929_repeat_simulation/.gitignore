@@ -1,0 +1,4 @@
+*.png
+*.uyvy
+/captures/
+/prepared/

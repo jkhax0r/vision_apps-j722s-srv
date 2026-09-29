@@ -1,0 +1,55 @@
+{
+  "version": 1,
+  "units": "mm",
+  "dictionary": "DICT_4X4_50",
+  "ids": [
+    1,
+    2,
+    3,
+    4
+  ],
+  "plate_side": 130.0,
+  "plate_thickness": 2.0,
+  "fence_depth": 16.0,
+  "fence_thickness": 3.0,
+  "corner_relief": 40.0,
+  "label_size": 100.0,
+  "marker_black_outer_size": 80.0,
+  "quiet_margin": 10.0,
+  "label_start_xy": [
+    22,
+    22
+  ],
+  "frame": "Virtual table corner is (0,0,0); x/y point inward, z points above table",
+  "marker_corners_canonical_xy": [
+    [
+      32,
+      112
+    ],
+    [
+      112,
+      112
+    ],
+    [
+      112,
+      32
+    ],
+    [
+      32,
+      32
+    ]
+  ],
+  "marker_center_xy": [
+    72,
+    72
+  ],
+  "marker_plane_z_without_paper": 2.0,
+  "orientation": "Clipped lower-left label corner toward chamfered outside table corner",
+  "table_registration": "Valid only when both fences contact straight vertical table edges",
+  "flat_plate_registration": "No edge registration; locate crop corners separately",
+  "volumes_mm3": {
+    "table_corner_cap": 43950.54400000001,
+    "flat_marker_plate": 32190.544
+  },
+  "status": "CAD and synthetic detection checks only; physical print and live camera test pending"
+}

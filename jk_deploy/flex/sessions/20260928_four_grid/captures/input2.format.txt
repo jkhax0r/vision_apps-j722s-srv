@@ -1,0 +1,11 @@
+Format Video Capture:
+	Width/Height      : 1920/1200
+	Pixel Format      : 'UYVY' (UYVY 4:2:2)
+	Field             : None
+	Bytes per Line    : 3840
+	Size Image        : 4608000
+	Colorspace        : sRGB
+	Transfer Function : sRGB
+	YCbCr/HSV Encoding: ITU-R 601
+	Quantization      : Limited Range
+	Flags             : 

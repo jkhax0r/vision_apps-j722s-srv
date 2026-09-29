@@ -1,0 +1,259 @@
+{
+  "schema_version": 2,
+  "description": "Unordered corner-marker checker-plane calibration candidate",
+  "capture_order": [
+    0,
+    1,
+    2,
+    3
+  ],
+  "front_input": 0,
+  "corner_ids_clockwise_from_front_right": [
+    1,
+    2,
+    3,
+    4
+  ],
+  "camera_names": [
+    "input0 front",
+    "input1 right",
+    "input2 rear",
+    "input3 left"
+  ],
+  "alignment_source": "Unordered ArUco DICT_4X4_50 IDs and integer checker grids",
+  "aligned_models": [
+    {
+      "input": 0,
+      "rotation": [
+        [
+          -1,
+          0
+        ],
+        [
+          0,
+          -1
+        ]
+      ],
+      "shift": [
+        0,
+        0
+      ],
+      "marker_rms_cells": 0.0
+    },
+    {
+      "input": 1,
+      "rotation": [
+        [
+          -1,
+          0
+        ],
+        [
+          0,
+          -1
+        ]
+      ],
+      "shift": [
+        10,
+        2
+      ],
+      "marker_rms_cells": 0.4653513075660138
+    },
+    {
+      "input": 2,
+      "rotation": [
+        [
+          0,
+          1
+        ],
+        [
+          -1,
+          0
+        ]
+      ],
+      "shift": [
+        0,
+        18
+      ],
+      "marker_rms_cells": 0.39971583155899293
+    },
+    {
+      "input": 3,
+      "rotation": [
+        [
+          1,
+          0
+        ],
+        [
+          0,
+          1
+        ]
+      ],
+      "shift": [
+        -9,
+        8
+      ],
+      "marker_rms_cells": 0.21480340234464368
+    }
+  ],
+  "marker_disagreement_cells": {
+    "4": 0.10645214863608862,
+    "1": 0.4653513075660138,
+    "2": 0.39971583155899293,
+    "3": 0.2845152779174254
+  },
+  "checker_phase_verification": [
+    {
+      "median_luma_even_odd": [
+        20.0,
+        244.5
+      ],
+      "white_parity": 1
+    },
+    {
+      "median_luma_even_odd": [
+        27.0,
+        244.0
+      ],
+      "white_parity": 1
+    },
+    {
+      "median_luma_even_odd": [
+        16.0,
+        204.0
+      ],
+      "white_parity": 1
+    },
+    {
+      "median_luma_even_odd": [
+        11.0,
+        221.0
+      ],
+      "white_parity": 1
+    }
+  ],
+  "table_corner_estimates_cells": {
+    "4": [
+      -21.492709949712477,
+      -14.62691911076478
+    ],
+    "1": [
+      22.159175475088432,
+      -15.144387955098027
+    ],
+    "2": [
+      21.968126364461984,
+      29.94431893697312
+    ],
+    "3": [
+      -22.785922050643915,
+      30.503509407902463
+    ]
+  },
+  "crop_cells": [
+    -21.87984948277408,
+    -22.329969787008796,
+    43.75969896554816,
+    44.65993957401759
+  ],
+  "view_frame": {
+    "origin_cells": [
+      -0.03783254020149496,
+      7.669130319753194
+    ],
+    "axes": [
+      [
+        0.9999977184693931,
+        -0.002136131084063359
+      ],
+      [
+        0.002136131084063293,
+        0.9999977184693931
+      ]
+    ]
+  },
+  "crop_quality": {
+    "rectangle_max_error_cells": 0.6821090286019234,
+    "table_corner_disagreement_cells": {
+      "4": 0.18213770349984856,
+      "1": 1.5927709803410983,
+      "2": 0.7282831760508873,
+      "3": 0.8546612667607988
+    },
+    "inset_percent_per_edge": 0.5
+  },
+  "checker_support": [
+    {
+      "input": 0,
+      "farthest_marker_corner_from_checker_cells": 2.76734425454612
+    },
+    {
+      "input": 1,
+      "farthest_marker_corner_from_checker_cells": 4.214022998636133
+    },
+    {
+      "input": 2,
+      "farthest_marker_corner_from_checker_cells": 4.099271120747971
+    },
+    {
+      "input": 3,
+      "farthest_marker_corner_from_checker_cells": 4.0826766225132305
+    }
+  ],
+  "feather_cells": 1.5,
+  "holder_geometry": {
+    "version": 1,
+    "units": "mm",
+    "dictionary": "DICT_4X4_50",
+    "ids": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "plate_side": 130.0,
+    "plate_thickness": 2.0,
+    "fence_depth": 16.0,
+    "fence_thickness": 3.0,
+    "corner_relief": 40.0,
+    "label_size": 100.0,
+    "marker_black_outer_size": 80.0,
+    "quiet_margin": 10.0,
+    "label_start_xy": [
+      22,
+      22
+    ],
+    "frame": "Virtual table corner is (0,0,0); x/y point inward, z points above table",
+    "marker_corners_canonical_xy": [
+      [
+        32,
+        112
+      ],
+      [
+        112,
+        112
+      ],
+      [
+        112,
+        32
+      ],
+      [
+        32,
+        32
+      ]
+    ],
+    "marker_center_xy": [
+      72,
+      72
+    ],
+    "marker_plane_z_without_paper": 2.0,
+    "orientation": "Clipped lower-left label corner toward chamfered outside table corner",
+    "table_registration": "Valid only when both fences contact straight vertical table edges",
+    "flat_plate_registration": "No edge registration; locate crop corners separately",
+    "volumes_mm3": {
+      "table_corner_cap": 43950.54400000001,
+      "flat_marker_plate": 32190.544
+    },
+    "status": "CAD and synthetic detection checks only; physical print and live camera test pending"
+  },
+  "notes": "Static flat-plane candidate, not a new intrinsic fit or metric accuracy guarantee. Labels must have correct orientation on seated holders. Front camera uses the existing inverted native image convention."
+}
