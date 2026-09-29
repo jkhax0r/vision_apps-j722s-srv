@@ -1,0 +1,35 @@
+{
+  "state": "complete",
+  "phase": "Calibration applied",
+  "started_utc": "2026-09-29T18:06:43.291009+00:00",
+  "job": "/root/jk-calibration-jobs/20260929T180642Z_7b29f0",
+  "timings_seconds": {
+    "Capturing": 73.2,
+    "Calculating": 372.5,
+    "Applying": 4.7
+  },
+  "elapsed_seconds": 450.6,
+  "previous_preset": "/opt/jk-ti-srv-flex/grid_calibration_20260929_markers",
+  "commands": [
+    [
+      "/usr/bin/python3",
+      "/opt/jk-ti-srv-flex/calibration_ui_f24e5a1b0d8b/tools/flex/capture_table_bursts.py",
+      "/root/jk-calibration-jobs/20260929T180642Z_7b29f0/raw",
+      "--runtime",
+      "/opt/jk-ti-srv-flex",
+      "--resume",
+      "/root/jk-calibration-jobs/20260929T180642Z_7b29f0/resume_previous.sh"
+    ],
+    [
+      "/usr/bin/python3",
+      "/opt/jk-ti-srv-flex/calibration_ui_f24e5a1b0d8b/tools/flex/calibrate_repeated.py",
+      "/root/jk-calibration-jobs/20260929T180642Z_7b29f0/raw",
+      "/root/jk-calibration-jobs/20260929T180642Z_7b29f0/result"
+    ],
+    [
+      "/opt/jk-ti-srv-flex/table_20260929T180642Z_7b29f0/run.sh"
+    ]
+  ],
+  "launcher": "/opt/jk-ti-srv-flex/table_20260929T180642Z_7b29f0/run.sh",
+  "finished_utc": "2026-09-29T18:14:13.932131+00:00"
+}

@@ -1,0 +1,616 @@
+{
+  "schema_version": 2,
+  "description": "Unordered corner-marker checker-plane calibration candidate",
+  "capture_order": [
+    0,
+    1,
+    2,
+    3
+  ],
+  "front_input": 0,
+  "corner_ids_clockwise_from_front_right": [
+    1,
+    2,
+    3,
+    4
+  ],
+  "camera_names": [
+    "input0 front",
+    "input1 right",
+    "input2 rear",
+    "input3 left"
+  ],
+  "alignment_source": "Unordered ArUco DICT_4X4_50 IDs and integer checker grids",
+  "aligned_models": [
+    {
+      "input": 0,
+      "rotation": [
+        [
+          -1,
+          0
+        ],
+        [
+          0,
+          -1
+        ]
+      ],
+      "shift": [
+        0,
+        0
+      ],
+      "marker_rms_cells": 0.0,
+      "corners": 577,
+      "grid_bounds": [
+        [
+          -22.0,
+          -15.0
+        ],
+        [
+          18.0,
+          8.0
+        ]
+      ],
+      "H_global_to_undistorted": [
+        [
+          -0.06866226336669472,
+          -0.00027689447029503953,
+          -0.016209903661170262
+        ],
+        [
+          -0.00011824505414502882,
+          -0.06166842556806683,
+          -0.15594404384364016
+        ],
+        [
+          -0.00014105537582655847,
+          -0.02725203565052938,
+          1.0
+        ]
+      ],
+      "base_rms_px": 1.5308349686672937,
+      "heldout_grid_error": {
+        "points": 51,
+        "rms_px": 0.6318542722517635,
+        "p95_px": 1.3326959849285593
+      }
+    },
+    {
+      "input": 1,
+      "rotation": [
+        [
+          0,
+          1
+        ],
+        [
+          -1,
+          0
+        ]
+      ],
+      "shift": [
+        8,
+        9
+      ],
+      "marker_rms_cells": 0.4245704246928561,
+      "corners": 655,
+      "grid_bounds": [
+        [
+          0.0,
+          -11.0
+        ],
+        [
+          22.0,
+          27.0
+        ]
+      ],
+      "H_global_to_undistorted": [
+        [
+          -0.00011237861279586605,
+          -0.0837666735892713,
+          0.6808254695722608
+        ],
+        [
+          0.07900412642282637,
+          -0.00010799613378993883,
+          -0.8112983616953303
+        ],
+        [
+          0.034309157959084784,
+          -6.456820976501509e-05,
+          0.9999999999999999
+        ]
+      ],
+      "base_rms_px": 2.8581239120387543,
+      "heldout_grid_error": {
+        "points": 55,
+        "rms_px": 0.678750436153817,
+        "p95_px": 1.1215653074476315
+      }
+    },
+    {
+      "input": 2,
+      "rotation": [
+        [
+          0,
+          1
+        ],
+        [
+          -1,
+          0
+        ]
+      ],
+      "shift": [
+        -1,
+        17
+      ],
+      "marker_rms_cells": 0.40075331683924165,
+      "corners": 738,
+      "grid_bounds": [
+        [
+          -22.0,
+          8.0
+        ],
+        [
+          20.0,
+          30.0
+        ]
+      ],
+      "H_global_to_undistorted": [
+        [
+          0.11967002290255056,
+          0.00021249489264966494,
+          -0.016566025558246954
+        ],
+        [
+          -0.0007496501782733179,
+          0.10738692297931017,
+          -1.977322625688034
+        ],
+        [
+          0.0039019792513443558,
+          0.04660299118466651,
+          1.0
+        ]
+      ],
+      "base_rms_px": 3.468134199853909,
+      "heldout_grid_error": {
+        "points": 68,
+        "rms_px": 0.8081856603259693,
+        "p95_px": 1.484448992661755
+      }
+    },
+    {
+      "input": 3,
+      "rotation": [
+        [
+          1,
+          0
+        ],
+        [
+          0,
+          1
+        ]
+      ],
+      "shift": [
+        -10,
+        14
+      ],
+      "marker_rms_cells": 0.18116916168606123,
+      "corners": 713,
+      "grid_bounds": [
+        [
+          -22.0,
+          -14.0
+        ],
+        [
+          0.0,
+          27.0
+        ]
+      ],
+      "H_global_to_undistorted": [
+        [
+          0.0006231142754523221,
+          0.08682205616901956,
+          -0.7267413411834803
+        ],
+        [
+          -0.08270869501450626,
+          -0.0008964782077807757,
+          -0.8344261445645934
+        ],
+        [
+          -0.03277221932588992,
+          0.0031787010669977094,
+          0.9999999999999999
+        ]
+      ],
+      "base_rms_px": 2.6210394592634794,
+      "heldout_grid_error": {
+        "points": 64,
+        "rms_px": 0.5026075262068654,
+        "p95_px": 0.8855854419564356
+      }
+    }
+  ],
+  "marker_disagreement_cells": {
+    "4": 0.24572231133730071,
+    "1": 0.4245704246928561,
+    "2": 0.40075331683924165,
+    "3": 0.07256084345647493
+  },
+  "checker_phase_verification": [
+    {
+      "median_luma_even_odd": [
+        14.0,
+        245.0
+      ],
+      "white_parity": 1
+    },
+    {
+      "median_luma_even_odd": [
+        28.0,
+        238.0
+      ],
+      "white_parity": 1
+    },
+    {
+      "median_luma_even_odd": [
+        16.0,
+        243.0
+      ],
+      "white_parity": 1
+    },
+    {
+      "median_luma_even_odd": [
+        14.0,
+        246.0
+      ],
+      "white_parity": 1
+    }
+  ],
+  "table_corner_estimates_cells": {
+    "4": [
+      -21.82929715542573,
+      -15.034841223182294
+    ],
+    "1": [
+      21.904862813276836,
+      -14.927990392784402
+    ],
+    "2": [
+      21.969269755437168,
+      29.930467083869516
+    ],
+    "3": [
+      -22.39794462237477,
+      30.232494535958818
+    ]
+  },
+  "crop_cells": [
+    -21.804977398659112,
+    -22.306312858034058,
+    43.609954797318224,
+    44.612625716068116
+  ],
+  "view_frame": {
+    "origin_cells": [
+      -0.08827730227162434,
+      7.550032500965409
+    ],
+    "axes": [
+      [
+        0.9999985724288167,
+        -0.00168971604979401
+      ],
+      [
+        0.00168971604979401,
+        0.9999985724288165
+      ]
+    ]
+  },
+  "crop_quality": {
+    "rectangle_max_error_cells": 0.30997760174462846,
+    "table_corner_disagreement_cells": {
+      "4": 0.4850129769421906,
+      "1": 0.6005383949712304,
+      "2": 1.0264479601987,
+      "3": 0.04443116511632145
+    },
+    "inset_percent_per_edge": 0.5
+  },
+  "checker_support": [
+    {
+      "input": 0,
+      "farthest_marker_corner_from_checker_cells": 3.904787991181254
+    },
+    {
+      "input": 1,
+      "farthest_marker_corner_from_checker_cells": 3.9445115821952186
+    },
+    {
+      "input": 2,
+      "farthest_marker_corner_from_checker_cells": 6.661942874944112
+    },
+    {
+      "input": 3,
+      "farthest_marker_corner_from_checker_cells": 4.272680891484709
+    }
+  ],
+  "feather_cells": 1.5,
+  "holder_geometry": {
+    "version": 1,
+    "units": "mm",
+    "dictionary": "DICT_4X4_50",
+    "ids": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "plate_side": 130.0,
+    "plate_thickness": 2.0,
+    "fence_depth": 16.0,
+    "fence_thickness": 3.0,
+    "corner_relief": 40.0,
+    "label_size": 100.0,
+    "marker_black_outer_size": 80.0,
+    "quiet_margin": 10.0,
+    "label_start_xy": [
+      22,
+      22
+    ],
+    "frame": "Virtual table corner is (0,0,0); x/y point inward, z points above table",
+    "marker_corners_canonical_xy": [
+      [
+        32,
+        112
+      ],
+      [
+        112,
+        112
+      ],
+      [
+        112,
+        32
+      ],
+      [
+        32,
+        32
+      ]
+    ],
+    "marker_center_xy": [
+      72,
+      72
+    ],
+    "marker_plane_z_without_paper": 2.0,
+    "orientation": "Clipped lower-left label corner toward chamfered outside table corner",
+    "table_registration": "Valid only when both fences contact straight vertical table edges",
+    "flat_plate_registration": "No edge registration; locate crop corners separately",
+    "volumes_mm3": {
+      "table_corner_cap": 43950.54400000001,
+      "flat_marker_plate": 32190.544
+    },
+    "status": "CAD and synthetic detection checks only; physical print and live camera test pending"
+  },
+  "notes": "Static flat-plane candidate, not a new intrinsic fit or metric accuracy guarantee. Labels must have correct orientation on seated holders. Front camera uses the existing inverted native image convention.",
+  "cameras": [
+    {
+      "input": 0,
+      "rotation": [
+        [
+          -1,
+          0
+        ],
+        [
+          0,
+          -1
+        ]
+      ],
+      "shift": [
+        0,
+        0
+      ],
+      "marker_rms_cells": 0.0,
+      "corners": 577,
+      "grid_bounds": [
+        [
+          -22.0,
+          -15.0
+        ],
+        [
+          18.0,
+          8.0
+        ]
+      ],
+      "H_global_to_undistorted": [
+        [
+          -0.06866226336669472,
+          -0.00027689447029503953,
+          -0.016209903661170262
+        ],
+        [
+          -0.00011824505414502882,
+          -0.06166842556806683,
+          -0.15594404384364016
+        ],
+        [
+          -0.00014105537582655847,
+          -0.02725203565052938,
+          1.0
+        ]
+      ],
+      "base_rms_px": 1.5308349686672937,
+      "heldout_grid_error": {
+        "points": 51,
+        "rms_px": 0.6318542722517635,
+        "p95_px": 1.3326959849285593
+      }
+    },
+    {
+      "input": 1,
+      "rotation": [
+        [
+          0,
+          1
+        ],
+        [
+          -1,
+          0
+        ]
+      ],
+      "shift": [
+        8,
+        9
+      ],
+      "marker_rms_cells": 0.4245704246928561,
+      "corners": 655,
+      "grid_bounds": [
+        [
+          0.0,
+          -11.0
+        ],
+        [
+          22.0,
+          27.0
+        ]
+      ],
+      "H_global_to_undistorted": [
+        [
+          -0.00011237861279586605,
+          -0.0837666735892713,
+          0.6808254695722608
+        ],
+        [
+          0.07900412642282637,
+          -0.00010799613378993883,
+          -0.8112983616953303
+        ],
+        [
+          0.034309157959084784,
+          -6.456820976501509e-05,
+          0.9999999999999999
+        ]
+      ],
+      "base_rms_px": 2.8581239120387543,
+      "heldout_grid_error": {
+        "points": 55,
+        "rms_px": 0.678750436153817,
+        "p95_px": 1.1215653074476315
+      }
+    },
+    {
+      "input": 2,
+      "rotation": [
+        [
+          0,
+          1
+        ],
+        [
+          -1,
+          0
+        ]
+      ],
+      "shift": [
+        -1,
+        17
+      ],
+      "marker_rms_cells": 0.40075331683924165,
+      "corners": 738,
+      "grid_bounds": [
+        [
+          -22.0,
+          8.0
+        ],
+        [
+          20.0,
+          30.0
+        ]
+      ],
+      "H_global_to_undistorted": [
+        [
+          0.11967002290255056,
+          0.00021249489264966494,
+          -0.016566025558246954
+        ],
+        [
+          -0.0007496501782733179,
+          0.10738692297931017,
+          -1.977322625688034
+        ],
+        [
+          0.0039019792513443558,
+          0.04660299118466651,
+          1.0
+        ]
+      ],
+      "base_rms_px": 3.468134199853909,
+      "heldout_grid_error": {
+        "points": 68,
+        "rms_px": 0.8081856603259693,
+        "p95_px": 1.484448992661755
+      }
+    },
+    {
+      "input": 3,
+      "rotation": [
+        [
+          1,
+          0
+        ],
+        [
+          0,
+          1
+        ]
+      ],
+      "shift": [
+        -10,
+        14
+      ],
+      "marker_rms_cells": 0.18116916168606123,
+      "corners": 713,
+      "grid_bounds": [
+        [
+          -22.0,
+          -14.0
+        ],
+        [
+          0.0,
+          27.0
+        ]
+      ],
+      "H_global_to_undistorted": [
+        [
+          0.0006231142754523221,
+          0.08682205616901956,
+          -0.7267413411834803
+        ],
+        [
+          -0.08270869501450626,
+          -0.0008964782077807757,
+          -0.8344261445645934
+        ],
+        [
+          -0.03277221932588992,
+          0.0031787010669977094,
+          0.9999999999999999
+        ]
+      ],
+      "base_rms_px": 2.6210394592634794,
+      "heldout_grid_error": {
+        "points": 64,
+        "rms_px": 0.5026075262068654,
+        "p95_px": 0.8855854419564356
+      }
+    }
+  ],
+  "crop_coverage": {
+    "sampled_pixels": 31680,
+    "covered_fraction": 0.994854797979798
+  },
+  "comparison_layout": true,
+  "method": "Shared lens prior + observed checker-plane homographies and smooth residuals",
+  "limitation": "Floor-only mapping, not new lens intrinsics or general 3D reconstruction",
+  "sha256": {
+    "four_mesh.bin": "d56c1b936174e1dc3ab76fc7292fb83bb88f65bfc274bf8d14e2cc5c51cdb783",
+    "four_blend.bin": "e3d7c529af7ec80144e84d2b2fe2c31e03977d16edb57021c65a68336df4d033"
+  }
+}
