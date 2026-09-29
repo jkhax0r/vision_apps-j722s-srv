@@ -218,6 +218,10 @@ def run_job(job, runtime, support, reuse=None):
         report = json.loads((job/"result/report.json").read_text())
         warnings = report.get("motion_warnings", [])+report.get("marker_stage_motion_warnings", [])
         messages = list(report.get("refinement_warnings", []))
+        coverage = report.get('coverage_warnings', [])+report.get('marker_stage_coverage_warnings', [])
+        if coverage:
+            status['coverage_warnings'] = list(dict.fromkeys(coverage))
+            messages.append('Checker detection coverage varied between captures. Calibration accuracy checks passed.')
         if warnings:
             messages.insert(0, "Movement or scene changes detected during capture. Calibration checks passed.")
             status["motion_warning_count"] = len(warnings)

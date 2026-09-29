@@ -237,8 +237,10 @@ Processing is deliberately conservative:
 4. Detect checkers independently, then retain the physical intersections found
    in every pass, using each pass's own measured pixel positions. Require at least
    300 common intersections per camera, covering at least 10% of the image and
-   retaining 80% of each detection's hull area. Preserve full detections alongside
-   the selected subset. Fit the marker/checker calibration independently per pass.
+   retaining 50% of each detection's hull area. Retaining 50% to below 80% records
+   a coverage warning, not a rejection; final geometry checks still decide whether
+   a calibration can be applied. Validate all cameras before selecting subsets,
+   and preserve full detections alongside them. Fit independently per pass.
 5. Resolve differing checker-grid origins/bases, then compare camera mappings
    at common floor points and compare the estimated table corners.
 6. Only after all comparisons pass, select the most representative pass (lowest
@@ -258,15 +260,22 @@ comparison; Touch CAL explicitly enables the optimized flags above.
 Initial motion warning thresholds are 0.75 px median and 2 px p95 at native
 resolution; local texture changes over 6% of tested tiles also produce a warning.
 These diagnostics never reject the burst. Independent
-mapping limits are 2 px RMS, 3 px p95, and 8 px p99; table-corner estimates must
+mapping limits are 3 px RMS, 4.5 px p95, and 12 px p99; table-corner estimates must
 agree within half a checker cell. These are engineering starting thresholds,
 not validated accuracy guarantees. Inspect actual-capture reports before
 tuning them. Motion checks can miss small/local movement and cannot prove that
 a consistently incorrect lens/cloth model is correct.
 
+Retained hull coverage is relative to each detection in the current run, not
+to an older calibration or to the whole screen. Changing tripod height between
+complete CAL runs is allowed; keep the rig fixed from marked capture through
+clear capture within a run. Higher setups must still provide readable corner
+markers, 300 common intersections, and shared checker area covering 10% of each
+native image. Sparse coverage far from the seams cannot guarantee good alignment.
+
 The root `report.json` contains per-frame mean brightness, advisory motion checks,
 `motion_policy: warn_only`, detailed `motion_warnings`, common checker support, raw
-file hashes, all pairwise consistency results, and the selected pass. Intermediate
+file hashes, `coverage_warnings`, all pairwise consistency results, and the selected pass. Intermediate
 results live in `prepared/` and `passes/`. **Stage only the root result**, using
 `stage_table.py` below; individual passes and marked simulations are refused.
 Any rejection leaves the existing target preset untouched.

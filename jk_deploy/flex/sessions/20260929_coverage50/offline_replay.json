@@ -1,0 +1,302 @@
+{
+  "source_job": "20260929T231510Z_e132a2",
+  "stage": "clear",
+  "saved_detections": true,
+  "passes": [
+    {
+      "status": "passed",
+      "heldout_grid_errors": [
+        {
+          "points": 65,
+          "rms_px": 1.0164039470189121,
+          "p95_px": 1.8738567420086538
+        },
+        {
+          "points": 89,
+          "rms_px": 0.8254243651022745,
+          "p95_px": 1.3083961192311122
+        },
+        {
+          "points": 86,
+          "rms_px": 0.5265824786424645,
+          "p95_px": 1.1360842854075992
+        },
+        {
+          "points": 97,
+          "rms_px": 0.5382915961775839,
+          "p95_px": 1.015441255972389
+        }
+      ],
+      "crop_coverage": {
+        "sampled_pixels": 31680,
+        "covered_fraction": 0.9996843434343434
+      },
+      "artifact_sha256": {
+        "four_mesh.bin": "ae0a001116d77a5376fe03498808c99105869332013adc1a3805d52d8a173ac6",
+        "four_blend.bin": "2fdd3775f464ef1dd260698b869890db6d5243fc8d5d5f8a6cd844cf1ceb7157"
+      }
+    },
+    {
+      "status": "passed",
+      "heldout_grid_errors": [
+        {
+          "points": 65,
+          "rms_px": 1.0268705077943607,
+          "p95_px": 1.7245606715434871
+        },
+        {
+          "points": 89,
+          "rms_px": 0.8290662947519889,
+          "p95_px": 1.325857609581792
+        },
+        {
+          "points": 86,
+          "rms_px": 0.5284675020736965,
+          "p95_px": 1.1393089270175218
+        },
+        {
+          "points": 97,
+          "rms_px": 0.538478567018264,
+          "p95_px": 1.0151154673419358
+        }
+      ],
+      "crop_coverage": {
+        "sampled_pixels": 31680,
+        "covered_fraction": 0.9996843434343434
+      },
+      "artifact_sha256": {
+        "four_mesh.bin": "1706cc8efa3c53800bcc93d7507c8477a28623ff143f9c2d330626ccce79c9c7",
+        "four_blend.bin": "2fdd3775f464ef1dd260698b869890db6d5243fc8d5d5f8a6cd844cf1ceb7157"
+      }
+    },
+    {
+      "status": "passed",
+      "heldout_grid_errors": [
+        {
+          "points": 65,
+          "rms_px": 1.0422956759559074,
+          "p95_px": 1.8659462961564486
+        },
+        {
+          "points": 89,
+          "rms_px": 0.8238314255319764,
+          "p95_px": 1.2908987146796498
+        },
+        {
+          "points": 86,
+          "rms_px": 0.5272163817017113,
+          "p95_px": 1.1310331362106711
+        },
+        {
+          "points": 97,
+          "rms_px": 0.5335549181226058,
+          "p95_px": 0.9919113623619262
+        }
+      ],
+      "crop_coverage": {
+        "sampled_pixels": 31680,
+        "covered_fraction": 0.9996843434343434
+      },
+      "artifact_sha256": {
+        "four_mesh.bin": "834e82c02c61bf14686d838655aa3e54628561008ad661f030acbfebdab3ca76",
+        "four_blend.bin": "2fdd3775f464ef1dd260698b869890db6d5243fc8d5d5f8a6cd844cf1ceb7157"
+      }
+    }
+  ],
+  "repeat_consistency": {
+    "passed": true,
+    "pairs": [
+      {
+        "reference_pass": 1,
+        "candidate_pass": 2,
+        "passed": true,
+        "reasons": [],
+        "cameras": [
+          {
+            "input": 0,
+            "samples": 928,
+            "mapping_rms_px": 0.077859090558598,
+            "mapping_p95_px": 0.16836704051831006,
+            "mapping_p99_px": 0.22462417418997332,
+            "new_invalid_fraction": 0.0
+          },
+          {
+            "input": 1,
+            "samples": 873,
+            "mapping_rms_px": 0.039629770252365915,
+            "mapping_p95_px": 0.06847747109528468,
+            "mapping_p99_px": 0.09860891599627176,
+            "new_invalid_fraction": 0.0
+          },
+          {
+            "input": 2,
+            "samples": 916,
+            "mapping_rms_px": 0.35628766742337076,
+            "mapping_p95_px": 0.1951533980910935,
+            "mapping_p99_px": 0.5304696761260275,
+            "new_invalid_fraction": 0.0
+          },
+          {
+            "input": 3,
+            "samples": 873,
+            "mapping_rms_px": 0.5640603663065407,
+            "mapping_p95_px": 0.12935062942088593,
+            "mapping_p99_px": 1.138489522703108,
+            "new_invalid_fraction": 0.0
+          }
+        ],
+        "table_corner_displacement_cells": [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "coordinate_rotation": [
+          [
+            1,
+            0
+          ],
+          [
+            0,
+            1
+          ]
+        ],
+        "coordinate_shift": [
+          0,
+          0
+        ],
+        "matched_front_corners": 763
+      },
+      {
+        "reference_pass": 1,
+        "candidate_pass": 3,
+        "passed": true,
+        "reasons": [],
+        "cameras": [
+          {
+            "input": 0,
+            "samples": 928,
+            "mapping_rms_px": 0.0812859251701192,
+            "mapping_p95_px": 0.17090190772440053,
+            "mapping_p99_px": 0.2523502526298834,
+            "new_invalid_fraction": 0.0
+          },
+          {
+            "input": 1,
+            "samples": 873,
+            "mapping_rms_px": 0.03884581642225673,
+            "mapping_p95_px": 0.07376201037740449,
+            "mapping_p99_px": 0.08957998632436491,
+            "new_invalid_fraction": 0.0
+          },
+          {
+            "input": 2,
+            "samples": 916,
+            "mapping_rms_px": 0.04206746458728253,
+            "mapping_p95_px": 0.07306928596963119,
+            "mapping_p99_px": 0.09586764556708408,
+            "new_invalid_fraction": 0.0
+          },
+          {
+            "input": 3,
+            "samples": 873,
+            "mapping_rms_px": 0.5572684192366166,
+            "mapping_p95_px": 0.12190975277919816,
+            "mapping_p99_px": 1.0829988368171974,
+            "new_invalid_fraction": 0.0
+          }
+        ],
+        "table_corner_displacement_cells": [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "coordinate_rotation": [
+          [
+            1,
+            0
+          ],
+          [
+            0,
+            1
+          ]
+        ],
+        "coordinate_shift": [
+          0,
+          0
+        ],
+        "matched_front_corners": 763
+      },
+      {
+        "reference_pass": 2,
+        "candidate_pass": 3,
+        "passed": true,
+        "reasons": [],
+        "cameras": [
+          {
+            "input": 0,
+            "samples": 928,
+            "mapping_rms_px": 0.08886905959786763,
+            "mapping_p95_px": 0.19119146807556117,
+            "mapping_p99_px": 0.3091561455561432,
+            "new_invalid_fraction": 0.0
+          },
+          {
+            "input": 1,
+            "samples": 873,
+            "mapping_rms_px": 0.03743960512926658,
+            "mapping_p95_px": 0.0682872412504409,
+            "mapping_p99_px": 0.0877081129956687,
+            "new_invalid_fraction": 0.0
+          },
+          {
+            "input": 2,
+            "samples": 916,
+            "mapping_rms_px": 0.3574220194963763,
+            "mapping_p95_px": 0.18345780372473064,
+            "mapping_p99_px": 0.5291107971984876,
+            "new_invalid_fraction": 0.0
+          },
+          {
+            "input": 3,
+            "samples": 873,
+            "mapping_rms_px": 0.04524427135932563,
+            "mapping_p95_px": 0.08335183367555508,
+            "mapping_p99_px": 0.12417465674501565,
+            "new_invalid_fraction": 0.0
+          }
+        ],
+        "table_corner_displacement_cells": [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "coordinate_rotation": [
+          [
+            1,
+            0
+          ],
+          [
+            0,
+            1
+          ]
+        ],
+        "coordinate_shift": [
+          0,
+          0
+        ],
+        "matched_front_corners": 763
+      }
+    ],
+    "limits": {
+      "mapping_rms_px": 2.0,
+      "mapping_p95_px": 3.0,
+      "mapping_p99_px": 8.0,
+      "table_corner_max_cells": 0.5
+    },
+    "selected_pass": 3,
+    "selection": "Medoid: smallest summed mapping disagreement with other independent passes"
+  }
+}

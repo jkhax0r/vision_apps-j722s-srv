@@ -107,6 +107,19 @@ class WorkerTests(unittest.TestCase):
         self.assertEqual(status["motion_warning_count"], 1)
         self.install.assert_called_once()
 
+    def test_coverage_warning_from_either_stage_is_visible_after_success(self):
+        for key in ('coverage_warnings', 'marker_stage_coverage_warnings'):
+            with self.subTest(stage=key):
+                self.job = self.root/key
+                self.calibrate.write_text(self.success_script.replace(
+                    '"motion_warnings":[]', f'"{key}":["Camera 1: shared checker coverage retains 79.96%."]'))
+                code, status = self.run_job()
+                self.assertEqual(code, 0)
+                self.assertIn('coverage varied', status['warning'])
+                self.assertIn('accuracy checks passed', status['warning'])
+                self.assertEqual(len(status['coverage_warnings']), 1)
+                self.assertNotIn('motion_warning_count', status)
+
     def test_apply_failure_restores_previous(self):
         self.launcher.write_text("#!/bin/sh\nexit 1\n")
         code, status = self.run_job()

@@ -1,0 +1,127 @@
+.Starting saved calibration: /tmp/tmpni1_w6wi/table/run.sh
+Four-camera stitching and CAL controls started.
+...Four-camera stitching and CAL controls started.
+..A calibration already owns the cameras; leaving its session running.
+................sleeping
+missing
+.0
+1
+2
+3
+bad
+.timeout
+............{"state": "complete", "phase": "Calibration applied", "started_utc": "2026-09-29T23:48:19.179989+00:00", "job": "/tmp/tmp_4ikla72/job", "timings_seconds": {"Capturing marked table": 0.0, "Checking marked table": 0.0, "Waiting for corner removal": 0.0, "Capturing clear table": 0.0, "Checking clear table": 0.0, "Calculating marked reference": 0.0, "Refining exposed corners": 0.0, "Applying": 0.0}, "elapsed_seconds": 0.1, "previous_preset": "/tmp/tmp_4ikla72/runtime/previous", "capture_source": "/tmp/tmp_4ikla72/job", "performance": {"workers": 4, "motion_mode": "sampled", "defer_bake": true, "persistent_capture": true, "pause_preview": true}, "step": "Applying", "commands": [["/usr/bin/python3", "/tmp/tmp_4ikla72/tools/capture_table_bursts.py", "/tmp/tmp_4ikla72/job/raw", "--runtime", "/tmp/tmp_4ikla72/runtime", "--resume", "/tmp/tmp_4ikla72/job/resume_previous.sh", "--persistent"], ["/usr/bin/python3", "/tmp/tmp_4ikla72/tools/check_calibration_markers.py", "/tmp/tmp_4ikla72/job/raw", "/tmp/tmp_4ikla72/job/marked_check.json", "--cache", "/tmp/tmp_4ikla72/job/average_cache", "--motion-mode", "sampled"], ["/usr/bin/python3", "/tmp/tmp_4ikla72/tools/capture_table_bursts.py", "/tmp/tmp_4ikla72/job/raw_clear", "--runtime", "/tmp/tmp_4ikla72/runtime", "--resume", "/tmp/tmp_4ikla72/job/resume_previous.sh", "--persistent"], ["/usr/bin/python3", "/tmp/tmp_4ikla72/tools/check_calibration_markers.py", "/tmp/tmp_4ikla72/job/raw_clear", "/tmp/tmp_4ikla72/job/clear_check.json", "--marked-check", "/tmp/tmp_4ikla72/job/marked_check.json", "--cache", "/tmp/tmp_4ikla72/job/average_cache", "--motion-mode", "sampled"], ["/usr/bin/python3", "/tmp/tmp_4ikla72/tools/calibrate_repeated.py", "/tmp/tmp_4ikla72/job/raw", "/tmp/tmp_4ikla72/job/marked_result", "--workers", "4", "--defer-bake", "--cache", "/tmp/tmp_4ikla72/job/average_cache", "--motion-mode", "sampled"], ["/usr/bin/python3", "/tmp/tmp_4ikla72/tools/calibrate_repeated.py", "/tmp/tmp_4ikla72/job/raw_clear", "/tmp/tmp_4ikla72/job/result", "--reference", "/tmp/tmp_4ikla72/job/marked_result", "--workers", "4", "--defer-bake", "--cache", "/tmp/tmp_4ikla72/job/average_cache", "--motion-mode", "sampled"], ["/tmp/tmp_4ikla72/runtime/candidate.sh"]], "launcher": "/tmp/tmp_4ikla72/runtime/candidate.sh", "failed_stage": "Applying", "warning": "Calibration is live, but saving its completion status failed."}
+Could not save final calibration status: Injected status failure
+..................................ssssssssssssssssssssss...............jk-checker-n9snldtj input 763 corners
+jk-checker-_rj8j3uh input 1000 corners
+jk-checker-c04b18nx input 789 corners
+jk-checker-5tbb_ftz input 775 corners
+jk-checker-che0r77t input 764 corners
+jk-checker-zwh1k0tq input 776 corners
+.jk-checker-dolwrfl6 input 763 corners
+..jk-checker-6c6ndyp2 input 763 corners
+jk-checker-_2y069zi input 1000 corners
+......Checking corner markers: camera 1
+Checking corner markers: camera 2
+Checking corner markers: camera 3
+Checking corner markers: camera 4
+Checking corner markers: camera 1
+Checking corner markers: camera 2
+Checking corner markers: camera 3
+Checking corner markers: camera 4
+.Checking corner markers: camera 1
+Checking corner markers: camera 2
+Checking corner markers: camera 3
+Checking corner markers: camera 4
+Checking corner markers: camera 1
+Checking corner markers: camera 2
+Checking corner markers: camera 3
+Checking corner markers: camera 4
+.Checking corner markers: camera 1
+Checking corner markers: camera 2
+Checking corner markers: camera 3
+Checking corner markers: camera 4
+.Checking corner markers: camera 1
+Checking corner markers: camera 2
+Checking corner markers: camera 3
+Checking corner markers: camera 4
+.........................Averaging pass01, input 0 (12 frames)
+Averaging pass01, input 1 (12 frames)
+Averaging pass01, input 2 (12 frames)
+Averaging pass01, input 3 (12 frames)
+Averaging pass02, input 0 (12 frames)
+Averaging pass02, input 1 (12 frames)
+Averaging pass02, input 2 (12 frames)
+Averaging pass02, input 3 (12 frames)
+Averaging pass03, input 0 (12 frames)
+Averaging pass03, input 1 (12 frames)
+Averaging pass03, input 2 (12 frames)
+Averaging pass03, input 3 (12 frames)
+Detecting checkerboard: pass01, input 0
+Detecting checkerboard: pass01, input 1
+Detecting checkerboard: pass01, input 2
+Detecting checkerboard: pass01, input 3
+Detecting checkerboard: pass02, input 0
+Detecting checkerboard: pass02, input 1
+Detecting checkerboard: pass02, input 2
+Detecting checkerboard: pass02, input 3
+Detecting checkerboard: pass03, input 0
+Detecting checkerboard: pass03, input 1
+Detecting checkerboard: pass03, input 2
+Detecting checkerboard: pass03, input 3
+Checking common checker coverage
+Calibrating pass01 independently
+Calibrating pass02 independently
+Calibrating pass03 independently
+Comparing calibration passes
+.Averaging pass01, input 0 (12 frames)
+Averaging pass01, input 1 (12 frames)
+Averaging pass01, input 2 (12 frames)
+Averaging pass01, input 3 (12 frames)
+Averaging pass02, input 0 (12 frames)
+Averaging pass02, input 1 (12 frames)
+Averaging pass02, input 2 (12 frames)
+Averaging pass02, input 3 (12 frames)
+Averaging pass03, input 0 (12 frames)
+Averaging pass03, input 1 (12 frames)
+Averaging pass03, input 2 (12 frames)
+Averaging pass03, input 3 (12 frames)
+Detecting checkerboard: pass01, input 0
+Detecting checkerboard: pass01, input 1
+Detecting checkerboard: pass01, input 2
+Detecting checkerboard: pass01, input 3
+Detecting checkerboard: pass02, input 0
+Detecting checkerboard: pass02, input 1
+Detecting checkerboard: pass02, input 2
+Detecting checkerboard: pass02, input 3
+Detecting checkerboard: pass03, input 0
+Detecting checkerboard: pass03, input 1
+Detecting checkerboard: pass03, input 2
+Detecting checkerboard: pass03, input 3
+Checking common checker coverage
+Calibrating pass01 independently
+Calibrating pass02 independently
+Calibrating pass03 independently
+Comparing calibration passes
+............pass01: input 0, 6 frames
+pass01: input 1, 6 frames
+pass01: input 2, 6 frames
+pass01: input 3, 6 frames
+pass02: input 0, 6 frames
+pass02: input 1, 6 frames
+pass02: input 2, 6 frames
+pass02: input 3, 6 frames
+pass03: input 0, 6 frames
+pass03: input 1, 6 frames
+pass03: input 2, 6 frames
+pass03: input 3, 6 frames
+....Capturing camera 1: one warmup, 3 bursts
+.Capturing camera 1: one warmup, 3 bursts
+Capturing camera 2: one warmup, 3 bursts
+Capturing camera 3: one warmup, 3 bursts
+Capturing camera 4: one warmup, 3 bursts
+.................................
+----------------------------------------------------------------------
+Ran 195 tests in 18.894s
+
+OK (skipped=22)

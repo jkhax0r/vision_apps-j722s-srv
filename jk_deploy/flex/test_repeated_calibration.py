@@ -124,7 +124,7 @@ class BurstOrchestrationTests(unittest.TestCase):
             reference = root/'marked_reference' if use_reference else None
             if reference:
                 reference.mkdir()
-                (reference/'report.json').write_text('{"motion_warnings":[]}')
+                (reference/'report.json').write_text('{"motion_warnings":[], "coverage_warnings":["Marked coverage warning"]}')
             observed = []
             def fit(source, destination, *args, **kwargs):
                 observed.append(kwargs['reference'])
@@ -145,7 +145,7 @@ class BurstOrchestrationTests(unittest.TestCase):
                  patch('calibrate_repeated.motion_diagnostic', return_value={'passed': True}) as motion, \
                  patch('calibrate_repeated.subprocess.run') as run, \
                  patch('calibrate_repeated.validate_marker_views', return_value=([], {'selected_ids': [1, 2, 3, 4]})), \
-                 patch('calibrate_repeated.common_checker_support', return_value=[]), \
+                 patch('calibrate_repeated.common_checker_support', return_value=[{'warning': 'Coverage warning'}]), \
                  patch('calibrate_repeated.calibrate', side_effect=fit), \
                  patch('calibrate_repeated.compare_sessions', return_value={'passed': True, 'selected_pass': 1}):
                 result = calibrate_bursts(source, output, reference=reference)
@@ -153,6 +153,9 @@ class BurstOrchestrationTests(unittest.TestCase):
             self.assertEqual(len(observed), 3)
             self.assertEqual(motion.call_count, 12)
             self.assertEqual('clean_refinement' in result, use_reference)
+            self.assertEqual(result['coverage_warnings'], ['Coverage warning'])
+            if use_reference:
+                self.assertEqual(result['marker_stage_coverage_warnings'], ['Marked coverage warning'])
             self.assertEqual(run.call_count, 12)
             for call in run.call_args_list:
                 command = call.args[0]
@@ -216,6 +219,41 @@ class MappingTests(unittest.TestCase):
         result = compare_pair(self.sample_fit(), candidate)
         self.assertFalse(result["passed"])
         self.assertAlmostEqual(result["cameras"][2]["mapping_rms_px"], 6)
+
+    def test_relaxed_rms_limit_boundary(self):
+        for offset, accepted in ((2.5, True), (3., True), (3.01, False)):
+            with self.subTest(offset=offset):
+                candidate = self.sample_fit()
+                candidate[1][2].offset[:] = [offset, 0]
+                result = compare_pair(self.sample_fit(), candidate)
+                self.assertEqual(result['passed'], accepted, result)
+                if not accepted:
+                    self.assertTrue(any('mapping_rms_px' in r for r in result['reasons']))
+
+    def check_percentile_boundary(self, metric, stride, limit):
+        # Sparse errors exercise each percentile without exceeding the RMS limit.
+        for offset, accepted in ((limit, True), (limit+.01, False)):
+            with self.subTest(metric=metric, offset=offset):
+                candidate = self.sample_fit()
+                original_map = candidate[1][2].map
+                def biased_map(world):
+                    pixels, valid = original_map(world)
+                    pixels[::stride, 0] += offset
+                    return pixels, valid
+                candidate[1][2].map = biased_map
+                result = compare_pair(self.sample_fit(), candidate)
+                self.assertLess(result['cameras'][2]['mapping_rms_px'], 3.)
+                self.assertAlmostEqual(result['cameras'][2][metric], offset)
+                self.assertEqual(result['passed'], accepted, result)
+                if not accepted:
+                    self.assertEqual(len(result['reasons']), 1)
+                    self.assertIn(metric, result['reasons'][0])
+
+    def test_relaxed_p95_limit_boundary(self):
+        self.check_percentile_boundary('mapping_p95_px', 10, 4.5)
+
+    def test_relaxed_p99_limit_boundary(self):
+        self.check_percentile_boundary('mapping_p99_px', 50, 12.)
 
     def test_crop_drift_rejected(self):
         candidate = self.sample_fit()

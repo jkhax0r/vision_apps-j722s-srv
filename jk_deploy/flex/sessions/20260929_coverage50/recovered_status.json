@@ -1,0 +1,61 @@
+{
+  "state": "complete",
+  "phase": "Calibration applied",
+  "started_utc": "2026-09-29T23:37:48.123769+00:00",
+  "job": "/root/jk-calibration-jobs/20260929T233747Z_0b0c3f",
+  "timings_seconds": {
+    "Calculating marked reference": 201.3,
+    "Refining exposed corners": 176.6,
+    "Applying": 5.2
+  },
+  "elapsed_seconds": 383.5,
+  "previous_preset": "/opt/jk-ti-srv-flex/table_20260929T221730Z_15039e",
+  "capture_source": "/root/jk-calibration-jobs/20260929T231510Z_e132a2",
+  "performance": {
+    "workers": 4,
+    "motion_mode": "sampled",
+    "defer_bake": true,
+    "persistent_capture": true,
+    "pause_preview": true
+  },
+  "step": "Applying",
+  "commands": [
+    [
+      "/usr/bin/python3",
+      "/opt/jk-ti-srv-flex/calibration_ui_769184ecc153/tools/flex/calibrate_repeated.py",
+      "/root/jk-calibration-jobs/20260929T231510Z_e132a2/raw",
+      "/root/jk-calibration-jobs/20260929T233747Z_0b0c3f/marked_result",
+      "--workers",
+      "4",
+      "--defer-bake",
+      "--cache",
+      "/root/jk-calibration-jobs/20260929T233747Z_0b0c3f/average_cache",
+      "--motion-mode",
+      "sampled"
+    ],
+    [
+      "/usr/bin/python3",
+      "/opt/jk-ti-srv-flex/calibration_ui_769184ecc153/tools/flex/calibrate_repeated.py",
+      "/root/jk-calibration-jobs/20260929T231510Z_e132a2/raw_clear",
+      "/root/jk-calibration-jobs/20260929T233747Z_0b0c3f/result",
+      "--reference",
+      "/root/jk-calibration-jobs/20260929T233747Z_0b0c3f/marked_result",
+      "--workers",
+      "4",
+      "--defer-bake",
+      "--cache",
+      "/root/jk-calibration-jobs/20260929T233747Z_0b0c3f/average_cache",
+      "--motion-mode",
+      "sampled"
+    ],
+    [
+      "/opt/jk-ti-srv-flex/table_20260929T233747Z_0b0c3f/run.sh"
+    ]
+  ],
+  "coverage_warnings": [
+    "Camera 1: shared checker coverage retains 79.96% of detected area."
+  ],
+  "warning": "Checker detection coverage varied between captures. Calibration accuracy checks passed.",
+  "launcher": "/opt/jk-ti-srv-flex/table_20260929T233747Z_0b0c3f/run.sh",
+  "finished_utc": "2026-09-29T23:44:11.579506+00:00"
+}

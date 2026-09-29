@@ -130,6 +130,8 @@ def calibrate_bursts(source, output, front=0, marker_ids=None, geometry=DEFAULT_
         started = time.monotonic()
         print("Checking common checker coverage", flush=True)
         report["common_checker_support"] = common_checker_support([output/"prepared"/name for name in names])
+        report["coverage_warnings"] = [item["warning"] for item in report["common_checker_support"]
+                                        if item.get("warning")]
         save_report(output, report)
         sessions = []
         for name in names:
@@ -174,6 +176,7 @@ def calibrate_bursts(source, output, front=0, marker_ids=None, geometry=DEFAULT_
             report["clean_refinement_passes"] = [json.loads((s/"report.json").read_text())["clean_refinement"] for s in sessions]
             reference_report = json.loads((reference/"report.json").read_text())
             report["marker_stage_motion_warnings"] = reference_report.get("motion_warnings", [])
+            report["marker_stage_coverage_warnings"] = reference_report.get("coverage_warnings", [])
             report["simulated_input"] |= bool(reference_report.get("simulated_input", False))
             report["refinement_warnings"] = [c["warning"] for c in report["clean_refinement"]["cameras"] if c["warning"]]
             if not any(c["new_checker_intersections"] for c in report["clean_refinement"]["cameras"]):

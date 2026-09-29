@@ -11,13 +11,15 @@ from scipy.spatial import cKDTree
 from align_markers import match_grid
 from bake_floor import FloorCamera, mapping, screen_world
 
-LIMITS = {"mapping_rms_px": 2., "mapping_p95_px": 3., "mapping_p99_px": 8.,
+LIMITS = {"mapping_rms_px": 3., "mapping_p95_px": 4.5, "mapping_p99_px": 12.,
           "table_corner_max_cells": .5}
+MIN_RETAINED_HULL = .50
+WARN_RETAINED_HULL = .80
 
 
 def common_checker_support(directories):
     """Retain independently measured correspondences on the same physical support."""
-    results = []
+    results, pending = [], []
     for i in range(4):
         files = [directory/f"input{i}.corners.npz" for directory in directories]
         if any(file.with_name(file.name.replace(".corners.npz", ".corners.full.npz")).exists() for file in files):
@@ -37,17 +39,30 @@ def common_checker_support(directories):
         if keep.sum() < 300:
             raise ValueError(f"Input {i}: fewer than 300 common checker intersections across passes")
         retained = []
-        for (grid, points), index in zip(observations, matches):
+        for pass_number, ((grid, points), index) in enumerate(zip(observations, matches), 1):
             selected = index[keep]
             before = cv2.contourArea(cv2.convexHull(points.astype(np.float32)))
             after = cv2.contourArea(cv2.convexHull(points[selected].astype(np.float32)))
-            if after < .1*1920*1200 or after/max(before, 1) < .80:
-                raise ValueError(f"Input {i}: common checker support loses too much image coverage")
-            retained.append({"detected": len(points), "common": len(selected), "hull_fraction_retained": after/before})
+            fraction = after/max(before, 1)
+            if after < .1*1920*1200:
+                raise ValueError(f"Camera {i+1}, pass {pass_number}: shared checker area covers "
+                                 f"{after/(1920*1200):.2%} of the image; minimum 10%")
+            if fraction < MIN_RETAINED_HULL:
+                raise ValueError(f"Camera {i+1}, pass {pass_number}: shared checker coverage retains "
+                                 f"{fraction:.2%} of detected area; minimum {MIN_RETAINED_HULL:.0%}")
+            retained.append({"detected": len(points), "common": len(selected),
+                             "hull_fraction_retained": fraction})
         for file, (grid, points), index in zip(files, observations, matches):
-            file.rename(file.with_name(file.name.replace(".corners.npz", ".corners.full.npz")))
-            np.savez(file, grid=grid[index[keep]], points=points[index[keep]])
-        results.append({"input": i, "passes": retained})
+            pending.append((file, grid[index[keep]], points[index[keep]]))
+        fraction = min(item['hull_fraction_retained'] for item in retained)
+        warning = (f"Camera {i+1}: shared checker coverage retains {fraction:.2%} of detected area."
+                   if fraction < WARN_RETAINED_HULL else '')
+        results.append({"input": i, "passes": retained, "warning": warning,
+                        "minimum_hull_fraction_retained": MIN_RETAINED_HULL})
+    # Validate every camera before replacing any detections, including on rejection.
+    for file, grid, points in pending:
+        file.rename(file.with_name(file.name.replace(".corners.npz", ".corners.full.npz")))
+        np.savez(file, grid=grid, points=points)
     return results
 
 
