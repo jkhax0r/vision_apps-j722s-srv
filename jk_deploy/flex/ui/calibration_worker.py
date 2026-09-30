@@ -20,6 +20,7 @@ TOOLS = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(TOOLS))
 from stage_table import FILES, validate_candidate
 from calibration_runtime import PreviewPause, available_workers
+from calibration_storage import cleanup_calibrations
 try:
     from .capture_recovery import saved_capture_source
 except ImportError:
@@ -176,11 +177,15 @@ def run_job(job, runtime, support, reuse=None):
     latest_report = None
     resume = job/"resume_previous.sh"
     try:
-        if shutil.disk_usage(job).free < 3*1024**3:
-            raise ValueError("Less than 3 GiB free; archive old calibration jobs before retrying")
         preset, order = current_preset(runtime)
         status["previous_preset"] = str(preset)
         captures = saved_capture_source(reuse) if reuse is not None else job
+        update("Clearing previous calibration captures")
+        status['storage_cleanup'] = cleanup_calibrations(
+            job.parent, runtime, preset,
+            protect=[job, captures, reuse] if reuse is not None else [job])
+        if shutil.disk_usage(job).free < 3*1024**3:
+            raise ValueError("Less than 3 GiB free after automatic calibration cleanup; other files are using storage")
         status['capture_source'] = str(captures)
         workers = available_workers()
         status['performance'] = dict(workers=workers, motion_mode='sampled', defer_bake=True,

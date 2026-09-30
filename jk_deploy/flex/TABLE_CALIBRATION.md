@@ -7,6 +7,15 @@ not recalibrate lenses.
 
 ## Touchscreen CAL Button
 
+Each new CAL automatically removes older captures, averaging caches, processing
+outputs, and failed jobs before checking space or capturing images. Saved-capture
+retry data is not retained across a new CAL. The current and previous installed
+calibrations remain available, with their small status/log files. Cleanup runs
+under the calibration lock and never deletes the active job. An explicitly
+requested retry protects only its own source captures until a new CAL starts.
+The 3 GiB free-space safety check remains after cleanup; unrelated system files
+are not deleted. Cleanup details are recorded in the new job's status JSON.
+
 The wide 1920x720 touch LCD is DSI-1, compositor **screen 0**, regardless of its
 physical display numbering. The other compositor outputs are separate displays.
 The lower-left **CAL** menu offers **Recalibrate** and camera settings. Recalibrate

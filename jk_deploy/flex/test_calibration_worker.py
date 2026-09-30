@@ -44,7 +44,8 @@ class WorkerTests(unittest.TestCase):
                                "(p/'report.json').write_text('{\"motion_warnings\":[]}')\n"
                                "print('Comparing calibration passes')\n")
         self.calibrate.write_text(self.success_script)
-        self.launcher = self.runtime/"candidate.sh"
+        (self.runtime/'candidate').mkdir()
+        self.launcher = self.runtime/"candidate/run.sh"
         self.launcher.write_text("#!/bin/sh\nexit 0\n")
         self.launcher.chmod(0o755)
         self.restore = self.runtime/"run_flex_stitch.sh"
@@ -183,6 +184,21 @@ class WorkerTests(unittest.TestCase):
                 worker.install_candidate(self.root/"result", self.runtime, "test")
         self.assertFalse((self.runtime/"table_test").exists())
 
+    def test_cleanup_runs_before_free_space_check_and_capture(self):
+        cleaned = []
+        def cleanup(*args, **kwargs):
+            self.assertEqual(kwargs['protect'], [self.job])
+            cleaned.append(True)
+            return {'removed': [], 'errors': [], 'freed_bytes': 4096}
+        def space(*args):
+            self.assertTrue(cleaned)
+            return SimpleNamespace(free=10*1024**3)
+        with patch.object(worker, 'cleanup_calibrations', side_effect=cleanup), \
+                patch.object(worker.shutil, 'disk_usage', side_effect=space):
+            code, status = self.run_job()
+        self.assertEqual(code, 0)
+        self.assertEqual(status['storage_cleanup']['freed_bytes'], 4096)
+
     def test_low_disk_space_leaves_current_calibration_alone(self):
         with patch.object(worker.shutil, 'disk_usage', return_value=SimpleNamespace(free=1024)):
             code, status = self.run_job()
@@ -199,7 +215,9 @@ class WorkerTests(unittest.TestCase):
 
     def test_pointer_write_failure_restores_preview_and_old_boot_selection(self):
         pointer = self.runtime/'active_table_calibration.json'
-        previous = b'{"launcher":"previous/run.sh"}\n'
+        previous = (json.dumps(dict(launcher=str(self.previous/'run.sh'),
+                                   previous_preset=str(self.previous),
+                                   job=str(self.root/'previous_job')))+'\n').encode()
         original = worker.atomic_json
         for after_replace in (False, True):
             with self.subTest(after_replace=after_replace):
